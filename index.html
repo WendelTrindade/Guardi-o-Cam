@@ -1,0 +1,1653 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="author" content="Wendel Emílio de Souza Matias — oficial.respostas@gmail.com">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Guardião Imagens</title>
+<!--
+  Guardião Imagens 3.0 — fotos com prova de hora e local
+  Desenvolvido por Wendel Emílio de Souza Matias — oficial.respostas@gmail.com
+-->
+<style>
+:root{
+  --ouro:#D4AF37; --ouro2:#F1D27A; --ouro-esc:#8A6D12;
+  --preto:#0b0b0b; --card:#151515; --card2:#1d1d1d; --borda:#2b2b2b;
+  --verm:#C8102E; --verm2:#ff5a6e; --texto:#f2f2f2; --suave:#a2a2a2; --ok:#43d18e;
+  --nav:64px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--preto);color:var(--texto);font:15px/1.45 "Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{min-height:100%;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom))}
+.tela{max-width:760px;margin:0 auto;padding:14px 14px 24px}
+h2{margin:4px 0 12px;font-size:22px}
+h3{margin:0 0 10px;font-size:16px;color:var(--ouro2)}
+p{margin:0 0 10px}
+.cab{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.cab-acoes{display:flex;gap:8px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:14px;margin-bottom:12px}
+.suave{color:var(--suave);font-size:13px}
+.btn{border:1px solid var(--borda);background:var(--card2);border-radius:11px;padding:11px 16px;cursor:pointer;font-weight:600}
+.btn:active{transform:scale(.98)}
+.btn.ouro{background:var(--ouro);border-color:var(--ouro);color:#111}
+.btn.verm{background:var(--verm);border-color:var(--verm);color:#fff}
+.btn.contorno{background:transparent;border-color:var(--ouro);color:var(--ouro2)}
+.btn.mini{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn.cheio{width:100%}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.linha-bot{display:flex;gap:8px;flex-wrap:wrap}
+.linha-bot .btn{flex:1 1 140px}
+.campo{display:block;margin-bottom:11px}
+.campo>span{display:block;font-size:13px;color:var(--suave);margin-bottom:5px}
+.campo>span b{color:var(--verm2)}
+input[type=text],input[type=date],input[type=search],input[type=password],select,textarea{width:100%;background:#0f0f0f;border:1px solid var(--borda);border-radius:10px;padding:11px 12px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--ouro)}
+textarea{min-height:70px;resize:vertical}
+.grade2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{border:1px solid var(--borda);background:var(--card2);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.chip i{width:10px;height:10px;border-radius:50%;display:inline-block}
+.chip.ativo{border-color:var(--ouro);background:#2a2410;color:var(--ouro2)}
+.vazio{text-align:center;padding:40px 16px;color:var(--suave)}
+
+/* navegação */
+nav.abas{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:#070707;border-top:1px solid #222;display:flex;z-index:20}
+nav.abas button{flex:1;background:none;border:0;color:#8d8d8d;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;cursor:pointer;position:relative}
+nav.abas button.ativo{color:var(--ouro2)}
+nav.abas svg{width:24px;height:24px}
+.bolinha{position:absolute;top:7px;right:calc(50% - 22px);background:var(--verm);color:#fff;border-radius:9px;font-size:10px;padding:0 5px;min-width:17px;line-height:17px}
+
+/* câmera */
+.cam{position:fixed;left:0;right:0;top:0;bottom:calc(var(--nav) + env(safe-area-inset-bottom));background:#000;overflow:hidden}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam-topo{position:absolute;top:0;left:0;right:0;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;background:linear-gradient(#000a,#0000)}
+.selos{display:flex;flex-direction:column;gap:6px}
+.selo{display:inline-flex;align-items:center;gap:6px;background:#000a;border:1px solid #fff2;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600}
+.selo i{width:8px;height:8px;border-radius:50%;background:#888}
+.selo.ok i{background:var(--ok)} .selo.alerta i{background:#f5a524} .selo.erro i{background:var(--verm2)}
+.botoes-topo{display:flex;gap:8px}
+.redondo{width:44px;height:44px;border-radius:50%;background:#000a;border:1px solid #fff3;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff}
+.redondo svg{width:22px;height:22px}
+.redondo.ligado{background:var(--ouro);color:#111}
+.previa{position:absolute;left:12px;bottom:118px;max-width:min(520px,calc(100% - 24px));background:#000000a0;border-left:4px solid var(--ouro);border-radius:10px;padding:9px 13px;pointer-events:none}
+.previa .ph{display:flex;align-items:center;gap:10px}
+.previa .hh{font-size:34px;font-weight:800;color:var(--ouro2);line-height:1}
+.previa .dd{font-size:12px;border-left:2px solid var(--ouro);padding-left:9px;line-height:1.3}
+.previa .tag{display:inline-block;margin:6px 0 4px;padding:2px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.3px}
+.previa .ll{font-size:12px;color:#eee;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cam-base{position:absolute;left:0;right:0;bottom:0;padding:14px 18px 18px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#0000,#000c)}
+.disparo{width:76px;height:76px;border-radius:50%;border:5px solid #fff;background:var(--ouro);cursor:pointer;box-shadow:0 0 0 3px #0007;display:flex;align-items:center;justify-content:center}
+.disparo:active{transform:scale(.93)}
+.disparo.ocupado{background:#666}
+.ultima{width:54px;height:54px;border-radius:12px;border:2px solid #fff6;background:#222 center/cover;cursor:pointer}
+.btn-modelo{min-width:54px;max-width:120px;height:54px;border-radius:12px;border:2px solid var(--ouro);background:#000a;color:var(--ouro2);font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;line-height:1.15}
+.flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.flash.on{opacity:.85;transition:none}
+.sem-cam{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px;gap:14px;color:#ddd}
+
+/* galeria */
+.dia-tit{margin:16px 0 8px;font-size:13px;font-weight:700;color:var(--ouro2)}
+.grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.mini-foto{position:relative;aspect-ratio:1;border-radius:9px;overflow:hidden;background:#222 center/cover;cursor:pointer;border:2px solid transparent}
+.mini-foto .marca{position:absolute;left:0;right:0;bottom:0;padding:3px 6px;font-size:10px;font-weight:700;background:linear-gradient(#0000,#000d)}
+.mini-foto .nuvem{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:#000b;display:flex;align-items:center;justify-content:center;font-size:11px}
+.mini-foto.sel{border-color:var(--ouro)}
+.mini-foto.sel::after{content:"✓";position:absolute;top:5px;left:5px;width:22px;height:22px;border-radius:50%;background:var(--ouro);color:#111;font-weight:800;display:flex;align-items:center;justify-content:center}
+.barra-sel{position:sticky;bottom:calc(var(--nav) + 8px);margin-top:12px;background:#1e1a0c;border:1px solid var(--ouro);border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.barra-sel b{flex:1 1 100%;font-size:13px;color:var(--ouro2)}
+.filtros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.filtros .largo{grid-column:1/-1}
+
+/* lista de dados */
+.dados{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;font-size:13px}
+.dados dt{color:var(--suave)}
+.dados dd{margin:0;word-break:break-word}
+.verificado{color:var(--ok);font-weight:700}
+.nao-verificado{color:#f5a524;font-weight:700}
+
+/* equipe */
+.item-nuvem{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--borda)}
+.item-nuvem:first-child{border-top:0}
+.item-nuvem .info{flex:1;min-width:0;font-size:13px}
+.item-nuvem .info b{display:block;font-size:14px}
+.item-nuvem .info div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--suave)}
+.pilha{display:flex;flex-direction:column;gap:6px}
+.status-linha{display:flex;align-items:center;gap:8px;font-size:14px;margin-bottom:8px}
+.status-linha i{width:10px;height:10px;border-radius:50%}
+
+/* relatórios */
+.contador{background:#1e1a0c;border:1px solid #4b3f14;color:var(--ouro2);border-radius:10px;padding:10px 12px;font-weight:700;margin:4px 0 12px}
+.formatos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.formato{background:var(--card2);border:1px solid var(--borda);border-radius:12px;padding:14px;text-align:left;cursor:pointer}
+.formato b{display:block;font-size:15px;color:var(--ouro2);margin-bottom:3px}
+.formato span{font-size:12px;color:var(--suave)}
+.radio-linha{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+/* ajustes */
+.logo-prev{width:84px;height:84px;border-radius:14px;background:#000 center/contain no-repeat;border:1px solid var(--borda)}
+.lista-simples{list-style:none;margin:0 0 10px;padding:0}
+.lista-simples li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--borda)}
+.lista-simples li:first-child{border-top:0}
+.rodape{text-align:center;color:#777;font-size:12px;margin-top:18px}
+
+/* janelas */
+.modal-fundo{position:fixed;inset:0;background:#000b;z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:surge .15s}
+@media(min-width:700px){.modal-fundo{align-items:center}}
+@keyframes surge{from{opacity:0}to{opacity:1}}
+.modal{background:#121212;border:1px solid #333;border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column}
+@media(min-width:700px){.modal{border-radius:18px}}
+.modal.largo{max-width:760px}
+.modal-tit{padding:16px 18px 6px;font-size:18px;font-weight:700;color:var(--ouro2)}
+.modal-corpo{padding:8px 18px;overflow:auto}
+.modal-bot{display:flex;gap:8px;padding:12px 18px calc(16px + env(safe-area-inset-bottom));flex-wrap:wrap}
+.modal-bot .btn{flex:1 1 120px}
+.visor img{width:100%;border-radius:10px;display:block;background:#000}
+.toast{position:fixed;left:50%;bottom:calc(var(--nav) + 22px);transform:translateX(-50%);background:#1d1d1d;border:1px solid var(--ouro);color:#fff;padding:10px 16px;border-radius:12px;z-index:60;font-size:14px;max-width:92vw;box-shadow:0 8px 24px #000a}
+.toast.erro{border-color:var(--verm2)}
+.carregando{position:fixed;inset:0;background:#000c;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-weight:600}
+.giro{width:44px;height:44px;border-radius:50%;border:4px solid #333;border-top-color:var(--ouro);animation:gira 1s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+.oculto{display:none!important}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="abas" id="abas"></nav>
+<script>
+'use strict';
+/* ==========================================================================
+   Guardião Imagens 3.0
+   Desenvolvido por Wendel Emílio de Souza Matias — oficial.respostas@gmail.com
+   ========================================================================== */
+const VERSAO = '3.0.0';
+const AUTOR = 'Wendel Emílio de Souza Matias';
+const AUTOR_EMAIL = 'oficial.respostas@gmail.com';
+const TZ = 'America/Sao_Paulo';
+
+/* ---------- utilidades ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, props, ...filhos) {
+  const el = document.createElement(tag);
+  if (props) for (const k in props) {
+    const v = props[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'style') el.style.cssText = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'list' || k === 'for' || k.startsWith('data-') || k.startsWith('aria-')) el.setAttribute(k, v);
+    else if (k in el) { try { el[k] = v; } catch (e) { el.setAttribute(k, v); } }
+    else el.setAttribute(k, v === true ? '' : v);
+  }
+  for (const f of filhos.flat(9)) {
+    if (f == null || f === false) continue;
+    el.append(f.nodeType ? f : document.createTextNode(String(f)));
+  }
+  return el;
+}
+const ICONES = {
+  camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.6"/>',
+  galeria: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
+  equipe: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.2c2.9.3 5 2.6 5 5.8"/>',
+  relatorio: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+  ajustes: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  virar: '<path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2"/><path d="M20 4v4h-4M4 20v-4h4"/>',
+  lanterna: '<path d="M8 2h8l-1 6H9z"/><path d="M9 8h6v13H9z"/><path d="M12 12v3"/>'
+};
+function icone(nome) {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor');
+  s.setAttribute('stroke-width', '1.8'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  s.innerHTML = ICONES[nome] || ''; // conteúdo fixo do próprio app
+  return s;
+}
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const semAcento = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const slug = s => semAcento(s).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'item';
+const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+const xml = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function novoCodigo() {
+  const A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const r = crypto.getRandomValues(new Uint8Array(8));
+  let s = ''; r.forEach((b, i) => { s += A[b % A.length]; if (i === 3) s += '-'; });
+  return 'GI-' + s;
+}
+const fData = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric' });
+const fHora = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit', hour12: false });
+const fHoraS = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+const fDia = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, weekday: 'long' });
+const fDiaLongo = new Intl.DateTimeFormat('pt-BR', { timeZone: TZ, weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+const fChave = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+function diaChave(ts) {
+  const p = {}; fChave.formatToParts(new Date(ts)).forEach(x => p[x.type] = x.value);
+  return `${p.year}-${p.month}-${p.day}`;
+}
+const dataHora = ts => fData.format(new Date(ts)) + ' ' + fHoraS.format(new Date(ts));
+function distancia(a, b) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLa = (b.lat - a.lat) * r, dLo = (b.lon - a.lon) * r;
+  const x = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLo / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(x));
+}
+function contraste(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return '#111';
+  const n = parseInt(m[1], 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#111' : '#fff';
+}
+async function sha256(blob) {
+  const buf = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+function paraBlob(canvas, tipo, q) {
+  return new Promise(res => {
+    if (canvas.toBlob) canvas.toBlob(b => res(b), tipo, q);
+    else res(base64ParaBlob(canvas.toDataURL(tipo, q).split(',')[1], tipo));
+  });
+}
+function base64ParaBlob(b64, tipo) {
+  const bin = atob(b64); const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return new Blob([u], { type: tipo || 'image/jpeg' });
+}
+function blobParaBase64(blob) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(blob); });
+}
+async function abrirImagem(blob) {
+  if (window.createImageBitmap) { try { return await createImageBitmap(blob); } catch (e) { /* segue */ } }
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(blob); const im = new Image();
+    im.onload = () => { URL.revokeObjectURL(url); res(im); }; im.onerror = e => { URL.revokeObjectURL(url); rej(e); }; im.src = url;
+  });
+}
+async function reduzir(blob, max, q) {
+  const im = await abrirImagem(blob);
+  const W = im.width || im.naturalWidth, H = im.height || im.naturalHeight;
+  const f = Math.min(1, max / Math.max(W, H));
+  const c = document.createElement('canvas'); c.width = Math.round(W * f); c.height = Math.round(H * f);
+  const x = c.getContext('2d'); x.fillStyle = '#000'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0, c.width, c.height);
+  if (im.close) im.close();
+  const b = await paraBlob(c, 'image/jpeg', q);
+  return { blob: b, w: c.width, h: c.height };
+}
+function miniatura(canvas, lado) {
+  const f = lado / Math.max(canvas.width, canvas.height);
+  const c = document.createElement('canvas'); c.width = Math.round(canvas.width * f); c.height = Math.round(canvas.height * f);
+  c.getContext('2d').drawImage(canvas, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.72);
+}
+
+/* ---------- configurações ---------- */
+const LS = 'gi3_';
+const cfg = Object.assign({
+  empresa: 'Guardião', resp: '', posto: '', postos: [], logo: '', modelo: 'ronda', campos: {}, nota: '',
+  qualidade: 'alta', camLado: 'environment', modelosCustom: [], fbProj: '', fbKey: '', equipe: ''
+}, (() => { try { return JSON.parse(localStorage.getItem(LS + 'cfg') || '{}'); } catch (e) { return {}; } })());
+function salvarCfg() { try { localStorage.setItem(LS + 'cfg', JSON.stringify(cfg)); } catch (e) { toast('Não foi possível salvar as configurações', true); } }
+
+const MODELOS_BASE = [
+  { id: 'ronda', nome: 'Ronda', cor: '#D4AF37', campos: [{ n: 'Nº da ronda', req: true }, { n: 'Ponto de ronda' }, { n: 'Situação', op: ['Normal', 'Atenção', 'Alterado'] }] },
+  { id: 'ocorrencia', nome: 'Ocorrência', cor: '#C8102E', campos: [{ n: 'Nº da ocorrência', req: true }, { n: 'Tipo', op: ['Invasão', 'Furto', 'Dano ao patrimônio', 'Pessoa suspeita', 'Veículo suspeito', 'Falta de energia', 'Incêndio', 'Outro'] }, { n: 'Gravidade', op: ['Baixa', 'Média', 'Alta'] }] },
+  { id: 'chegada', nome: 'Chegada ao posto', cor: '#2E9E5B', campos: [{ n: 'Turno', op: ['Diurno', 'Noturno'] }] },
+  { id: 'saida', nome: 'Saída do posto', cor: '#3D6FD8', campos: [{ n: 'Turno', op: ['Diurno', 'Noturno'] }, { n: 'Passou o posto para' }] },
+  { id: 'vistoria', nome: 'Vistoria', cor: '#8E5BD6', campos: [{ n: 'Item vistoriado', req: true }, { n: 'Condição', op: ['Bom', 'Regular', 'Ruim'] }] },
+  { id: 'antesdepois', nome: 'Antes e depois', cor: '#E07B24', campos: [{ n: 'Local / item', req: true }, { n: 'Etapa', op: ['Antes', 'Depois'], req: true }] },
+  { id: 'livre', nome: 'Foto livre', cor: '#6B6B6B', campos: [] }
+];
+const modelos = () => MODELOS_BASE.concat(cfg.modelosCustom || []);
+const modeloAtual = () => modelos().find(m => m.id === cfg.modelo) || MODELOS_BASE[0];
+const valoresModelo = m => (cfg.campos[m.id] = cfg.campos[m.id] || {});
+const camposPreenchidos = m => m.campos.map(c => ({ n: c.n, v: String(valoresModelo(m)[c.n] || '').trim() })).filter(c => c.v);
+const faltando = m => m.campos.filter(c => c.req && !String(valoresModelo(m)[c.n] || '').trim()).map(c => c.n);
+
+/* ---------- banco de dados local (IndexedDB) ---------- */
+const DB = {
+  db: null,
+  abrir() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('guardiao_imagens', 1);
+      r.onupgradeneeded = () => { const d = r.result; d.createObjectStore('meta', { keyPath: 'id' }); d.createObjectStore('blob'); };
+      r.onsuccess = () => { this.db = r.result; res(); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  gravar(meta, blob) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction(['meta', 'blob'], 'readwrite');
+      t.objectStore('meta').put(meta);
+      if (blob) t.objectStore('blob').put(blob, meta.id);
+      t.oncomplete = () => res(); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  },
+  todas() {
+    return new Promise((res, rej) => {
+      const r = this.db.transaction('meta').objectStore('meta').getAll();
+      r.onsuccess = () => res(r.result.sort((a, b) => b.ts - a.ts)); r.onerror = () => rej(r.error);
+    });
+  },
+  arquivo(id) {
+    return new Promise((res, rej) => {
+      const r = this.db.transaction('blob').objectStore('blob').get(id);
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+  },
+  apagar(id) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction(['meta', 'blob'], 'readwrite');
+      t.objectStore('meta').delete(id); t.objectStore('blob').delete(id);
+      t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+    });
+  }
+};
+
+/* ---------- estado ---------- */
+const estado = {
+  aba: 'camera', fotos: [], sel: new Set(), selecionando: false,
+  filtro: { busca: '', posto: '', modelo: '', dia: '' }, limite: 240,
+  rel: { de: '', ate: '', posto: '', modelo: '', resp: '', soSel: false, respRel: '', ident: '', cliente: '', obs: '', layout: '2' },
+  nuvem: [], nuvemCarregada: false, nuvemFiltro: { resp: '', dia: '' },
+  instalar: null, ocupado: false, sincronizando: false
+};
+async function recarregar() { estado.fotos = await DB.todas(); atualizarAbas(); }
+
+/* ---------- hora verificada ---------- */
+const Relogio = {
+  base: 0, perf: 0, dev: 0, ok: false,
+  async sincronizar() {
+    if (!navigator.onLine) { atualizarStatus(); return false; }
+    try {
+      const t0 = performance.now();
+      const r = await fetch('./?hora=' + Date.now(), { method: 'HEAD', cache: 'no-store' });
+      const t1 = performance.now();
+      const d = r.headers.get('date'); const srv = d ? Date.parse(d) : NaN;
+      if (isNaN(srv)) throw new Error('sem data');
+      this.base = srv + (t1 - t0) / 2 + 500; this.perf = t1; this.dev = Date.now(); this.ok = true;
+    } catch (e) { /* mantém último estado */ }
+    atualizarStatus(); return this.ok;
+  },
+  agora() {
+    if (this.ok) {
+      const ep = performance.now() - this.perf, ed = Date.now() - this.dev;
+      if (Math.abs(ep - ed) < 90000 && ep < 86400000) return { ms: this.base + ep, ok: true };
+    }
+    return { ms: Date.now(), ok: false };
+  }
+};
+
+/* ---------- GPS e endereço ---------- */
+const UF = { 'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE', 'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA', 'Mato Grosso': 'MT', 'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR', 'Pernambuco': 'PE', 'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN', 'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR', 'Santa Catarina': 'SC', 'São Paulo': 'SP', 'Sergipe': 'SE', 'Tocantins': 'TO' };
+const GPS = {
+  pos: null, erro: '', vigia: null,
+  iniciar() {
+    if (!navigator.geolocation) { this.erro = 'Aparelho sem GPS'; return; }
+    if (this.vigia != null) return;
+    this.vigia = navigator.geolocation.watchPosition(p => {
+      this.pos = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy || 0, t: Date.now() };
+      this.erro = ''; Endereco.buscar(this.pos); atualizarStatus();
+    }, e => { this.erro = e.code === 1 ? 'GPS bloqueado' : 'Procurando GPS'; atualizarStatus(); },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 25000 });
+  },
+  atual() { return this.pos && Date.now() - this.pos.t < 120000 ? this.pos : null; }
+};
+const Endereco = {
+  atual: '', ref: null, ocupado: false,
+  cache: (() => { try { return JSON.parse(localStorage.getItem(LS + 'end') || '{}'); } catch (e) { return {}; } })(),
+  chave: p => p.lat.toFixed(4) + ',' + p.lon.toFixed(4),
+  async buscar(p) {
+    const k = this.chave(p);
+    if (this.cache[k]) { this.atual = this.cache[k]; this.ref = p; return; }
+    if (this.ref && distancia(this.ref, p) > 60) this.atual = '';
+    if (this.ocupado || !navigator.onLine) return;
+    this.ocupado = true;
+    try {
+      const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${p.lat}&lon=${p.lon}&zoom=18&addressdetails=1&accept-language=pt-BR`);
+      const j = await r.json(); const a = j.address || {};
+      const rua = [a.road || a.pedestrian || a.path || a.footway, a.house_number].filter(Boolean).join(', ');
+      const bairro = a.suburb || a.neighbourhood || a.quarter || a.village || a.hamlet;
+      const cidade = [a.city || a.town || a.municipality, UF[a.state] || a.state].filter(Boolean).join(' - ');
+      this.atual = [rua, bairro, cidade].filter(Boolean).join(', ') || j.display_name || '';
+      this.ref = p; this.cache[k] = this.atual;
+      const ks = Object.keys(this.cache); if (ks.length > 400) ks.slice(0, 100).forEach(x => delete this.cache[x]);
+      try { localStorage.setItem(LS + 'end', JSON.stringify(this.cache)); } catch (e) { /* cheio */ }
+    } catch (e) { /* sem internet */ }
+    setTimeout(() => { this.ocupado = false; }, 1500);
+    atualizarStatus();
+  }
+};
+
+/* ---------- logo ---------- */
+let logoImg = null;
+function carregarLogo() {
+  return new Promise(res => {
+    const im = new Image(); im.onload = () => { logoImg = im; res(); }; im.onerror = () => { logoImg = null; res(); };
+    im.src = cfg.logo || 'icon-192.png';
+  });
+}
+
+/* ---------- carimbo na foto ---------- */
+function retArred(x, X, Y, W, H, r) {
+  x.beginPath(); x.moveTo(X + r, Y); x.lineTo(X + W - r, Y); x.quadraticCurveTo(X + W, Y, X + W, Y + r);
+  x.lineTo(X + W, Y + H - r); x.quadraticCurveTo(X + W, Y + H, X + W - r, Y + H); x.lineTo(X + r, Y + H);
+  x.quadraticCurveTo(X, Y + H, X, Y + H - r); x.lineTo(X, Y + r); x.quadraticCurveTo(X, Y, X + r, Y); x.closePath();
+}
+function quebrar(x, t, larg) {
+  const palavras = String(t).split(/\s+/); const out = []; let l = '';
+  for (const p of palavras) { const tt = l ? l + ' ' + p : p; if (x.measureText(tt).width > larg && l) { out.push(l); l = p; } else l = tt; }
+  if (l) out.push(l); return out;
+}
+function carimbar(src, m) {
+  const W = src.width, H = src.height;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'); x.drawImage(src, 0, 0, W, H);
+  const s = Math.min(W, H) / 1080, pad = 26 * s, dentro = 22 * s, barra = 8 * s;
+  const fT = 96 * s, fD = 30 * s, fL = 28 * s, fS = 22 * s;
+  const FAM = '"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
+  const larg = Math.min(W - 2 * pad, (W > H ? 1120 : 1000) * s);
+  const tw = larg - dentro * 2 - barra;
+  const d = new Date(m.ts);
+  if (logoImg && logoImg.naturalWidth) {
+    const lw = Math.min(160 * s, W * 0.2), lh = lw * logoImg.naturalHeight / logoImg.naturalWidth;
+    x.save(); x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 8 * s; x.globalAlpha = 0.95;
+    x.drawImage(logoImg, W - pad - lw, pad, lw, lh);
+    x.globalAlpha = 1; x.font = `700 ${fS}px ${FAM}`; x.textAlign = 'right'; x.fillStyle = '#fff';
+    x.fillText(m.empresa || '', W - pad, pad + lh + fS * 1.25); x.restore();
+  }
+  x.font = `500 ${fL}px ${FAM}`;
+  const linhas = [];
+  const add = (t, cor) => quebrar(x, t, tw).forEach(l => linhas.push({ t: l, c: cor || '#fff' }));
+  m.campos.forEach(cp => add(cp.n + ': ' + cp.v));
+  add('Posto: ' + m.posto);
+  if (m.nota) add('Obs.: ' + m.nota, '#F1D27A');
+  if (m.end) add(m.end);
+  if (m.lat != null) add(`Lat ${m.lat.toFixed(6)}   Lon ${m.lon.toFixed(6)}   (±${Math.round(m.acc)} m)`, '#dcdcdc');
+  else add('Localização indisponível no momento da foto', '#ff8a8a');
+  add('Responsável: ' + m.resp, '#dcdcdc');
+  const hTag = fL * 1.6, lh = fL * 1.34;
+  const altura = dentro + fT * 1.02 + 12 * s + hTag + 8 * s + linhas.length * lh + 10 * s + fS * 1.5 + dentro * 0.6;
+  const x0 = pad, y0 = H - pad - altura;
+  x.save();
+  x.fillStyle = 'rgba(0,0,0,.58)'; retArred(x, x0, y0, larg, altura, 14 * s); x.fill();
+  x.fillStyle = '#D4AF37'; x.fillRect(x0, y0 + 10 * s, barra, altura - 20 * s);
+  const tx = x0 + barra + dentro; let y = y0 + dentro + fT * 0.84;
+  x.shadowColor = 'rgba(0,0,0,.55)'; x.shadowBlur = 4 * s; x.textAlign = 'left';
+  const hora = fHora.format(d);
+  x.font = `800 ${fT}px ${FAM}`; x.fillStyle = '#F1D27A'; x.fillText(hora, tx, y);
+  const wH = x.measureText(hora).width;
+  x.fillStyle = '#D4AF37'; x.fillRect(tx + wH + 18 * s, y - fT * 0.72, 4 * s, fT * 0.76);
+  x.font = `700 ${fD}px ${FAM}`; x.fillStyle = '#fff'; x.fillText(fData.format(d), tx + wH + 36 * s, y - fT * 0.40);
+  x.font = `500 ${fD * 0.92}px ${FAM}`; x.fillStyle = '#e6e6e6'; x.fillText(cap(fDia.format(d)), tx + wH + 36 * s, y - fT * 0.40 + fD * 1.15);
+  y += fT * 0.18 + 12 * s;
+  const tag = String(m.modelo.nome || '').toUpperCase();
+  x.font = `800 ${fL * 0.9}px ${FAM}`; x.shadowBlur = 0;
+  const tagW = x.measureText(tag).width + fL * 1.2, tagH = hTag * 0.82;
+  x.fillStyle = m.modelo.cor || '#D4AF37'; retArred(x, tx, y, tagW, tagH, tagH / 2); x.fill();
+  x.fillStyle = contraste(m.modelo.cor); x.textBaseline = 'middle'; x.fillText(tag, tx + fL * 0.6, y + tagH / 2 + s); x.textBaseline = 'alphabetic';
+  y += hTag + 8 * s;
+  x.shadowBlur = 4 * s; x.font = `500 ${fL}px ${FAM}`;
+  linhas.forEach(l => { x.fillStyle = l.c; x.fillText(l.t, tx, y + fL * 0.85); y += lh; });
+  y += 10 * s;
+  x.font = `700 ${fS}px ${FAM}`;
+  const selo = m.verif ? '✓ HORA VERIFICADA' : '! HORA DO APARELHO (NÃO VERIFICADA)';
+  x.fillStyle = m.verif ? '#5BE39A' : '#FF6B6B'; x.fillText(selo, tx, y + fS);
+  x.fillStyle = '#F1D27A'; x.fillText('   ·   CÓD. ' + m.code, tx + x.measureText(selo).width, y + fS);
+  x.restore();
+  return c;
+}
+
+/* ---------- registro da foto ---------- */
+async function registrar(src, origem) {
+  const hora = Relogio.agora(); const p = GPS.atual(); const mod = modeloAtual();
+  const meta = {
+    id: uid(), code: novoCodigo(), ts: Math.round(hora.ms), verif: hora.ok, dev: Date.now(),
+    lat: p ? p.lat : null, lon: p ? p.lon : null, acc: p ? p.acc : null, end: p ? Endereco.atual : '',
+    resp: cfg.resp.trim(), empresa: cfg.empresa.trim(), posto: cfg.posto.trim(),
+    modelo: { id: mod.id, nome: mod.nome, cor: mod.cor }, campos: camposPreenchidos(mod), nota: cfg.nota.trim(),
+    origem, sync: 0, versao: VERSAO
+  };
+  const c = carimbar(src, meta);
+  meta.w = c.width; meta.h = c.height;
+  const blob = await paraBlob(c, 'image/jpeg', 0.9);
+  meta.size = blob.size; meta.hash = await sha256(blob); meta.thumb = miniatura(c, 360);
+  await DB.gravar(meta, blob);
+  estado.fotos.unshift(meta);
+  atualizarAbas();
+  sincronizar();
+  return meta;
+}
+function validarAntes() {
+  if (!cfg.resp.trim()) { pedirNome(); return false; }
+  const m = modeloAtual(); const f = faltando(m);
+  if (!cfg.posto.trim() || f.length) {
+    abrirModelo((!cfg.posto.trim() ? ['Posto / local'] : []).concat(f));
+    return false;
+  }
+  return true;
+}
+async function capturar() {
+  if (estado.ocupado) return;
+  if (!validarAntes()) return;
+  const v = $('#video');
+  if (!v || !v.videoWidth) { toast('A câmera ainda não está pronta', true); return; }
+  estado.ocupado = true; const bt = $('#disparo'); if (bt) bt.classList.add('ocupado');
+  try {
+    const max = cfg.qualidade === 'alta' ? 2560 : 1600;
+    const f = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(v.videoWidth * f); c.height = Math.round(v.videoHeight * f);
+    c.getContext('2d').drawImage(v, 0, 0, c.width, c.height);
+    const fl = $('.flash'); if (fl) { fl.classList.add('on'); setTimeout(() => fl.classList.remove('on'), 60); }
+    if (navigator.vibrate) navigator.vibrate(25);
+    const m = await registrar(c, 'camera');
+    const u = $('.ultima'); if (u) u.style.backgroundImage = `url("${m.thumb}")`;
+    toast('Foto salva · ' + m.code + (m.verif ? '' : ' · hora não verificada'));
+  } catch (e) { aviso('Não foi possível salvar a foto', String(e && e.message || e)); }
+  estado.ocupado = false; if (bt) bt.classList.remove('ocupado');
+}
+async function capturarArquivo(arquivo) {
+  if (!arquivo || estado.ocupado) return;
+  if (!validarAntes()) return;
+  estado.ocupado = true;
+  try {
+    const im = await abrirImagem(arquivo);
+    const W = im.width || im.naturalWidth, H = im.height || im.naturalHeight;
+    const max = cfg.qualidade === 'alta' ? 2560 : 1600; const f = Math.min(1, max / Math.max(W, H));
+    const c = document.createElement('canvas'); c.width = Math.round(W * f); c.height = Math.round(H * f);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+    const m = await registrar(c, 'arquivo');
+    toast('Foto salva · ' + m.code);
+    render();
+  } catch (e) { aviso('Não foi possível usar essa foto', String(e && e.message || e)); }
+  estado.ocupado = false;
+}
+
+/* ---------- câmera ---------- */
+const Cam = {
+  stream: null, track: null, lanterna: false,
+  async abrir() {
+    this.fechar();
+    const area = $('#sem-cam'); if (area) area.classList.add('oculto');
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('sem suporte');
+      this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: cfg.camLado }, width: { ideal: 1920 }, height: { ideal: 1080 } } });
+      const v = $('#video'); if (!v) { this.fechar(); return; }
+      v.srcObject = this.stream; await v.play().catch(() => {});
+      this.track = this.stream.getVideoTracks()[0];
+      const cap = this.track.getCapabilities ? this.track.getCapabilities() : {};
+      const bl = $('#bt-lanterna'); if (bl) bl.classList.toggle('oculto', !cap.torch);
+    } catch (e) {
+      const a = $('#sem-cam'); if (a) a.classList.remove('oculto');
+    }
+  },
+  fechar() {
+    if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+    this.stream = null; this.track = null; this.lanterna = false;
+  },
+  async alternarLanterna() {
+    if (!this.track) return;
+    try { this.lanterna = !this.lanterna; await this.track.applyConstraints({ advanced: [{ torch: this.lanterna }] }); }
+    catch (e) { this.lanterna = false; }
+    const b = $('#bt-lanterna'); if (b) b.classList.toggle('ligado', this.lanterna);
+  }
+};
+
+/* ---------- janelas, avisos ---------- */
+function modal(titulo, corpo, botoes, largo) {
+  return new Promise(res => {
+    const fundo = h('div', { class: 'modal-fundo' });
+    const fechar = v => { fundo.remove(); res(v); };
+    const bts = (botoes || [{ t: 'OK', v: true, cls: 'ouro' }]).map(b => h('button', {
+      class: 'btn ' + (b.cls || ''), text: b.t,
+      onclick: async () => { if (b.antes) { const ok = await b.antes(); if (ok === false) return; } fechar(b.v); }
+    }));
+    fundo.append(h('div', { class: 'modal' + (largo ? ' largo' : '') },
+      h('div', { class: 'modal-tit', text: titulo }),
+      corpo ? h('div', { class: 'modal-corpo' }, corpo) : null,
+      h('div', { class: 'modal-bot' }, bts)));
+    fundo.addEventListener('click', e => { if (e.target === fundo) fechar(undefined); });
+    document.body.append(fundo);
+  });
+}
+const aviso = (t, m) => modal(t, typeof m === 'string' ? h('p', { text: m }) : m);
+const confirmar = (t, m, ok, cls) => modal(t, h('p', { text: m }), [{ t: 'Cancelar', v: false }, { t: ok || 'Confirmar', v: true, cls: cls || 'verm' }]);
+let toastTimer = null;
+function toast(t, erro) {
+  document.querySelectorAll('.toast').forEach(e => e.remove());
+  const el = h('div', { class: 'toast' + (erro ? ' erro' : ''), text: t });
+  document.body.append(el); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.remove(), 3200);
+}
+function carregando(texto) {
+  const tx = h('div', { text: texto || 'Aguarde…' });
+  const el = h('div', { class: 'carregando' }, h('div', { class: 'giro' }), tx);
+  document.body.append(el);
+  return { texto: t => { tx.textContent = t; }, fim: () => el.remove() };
+}
+const campo = (rotulo, input, obrig, dica) => h('label', { class: 'campo' },
+  h('span', null, rotulo, obrig ? h('b', { text: ' *' }) : null), input, dica ? h('div', { class: 'suave', style: 'margin-top:4px', text: dica }) : null);
+
+function pedirNome() {
+  const inp = h('input', { type: 'text', value: cfg.resp, placeholder: 'Ex.: João da Silva' });
+  const emp = h('input', { type: 'text', value: cfg.empresa, placeholder: 'Nome da empresa' });
+  modal('Quem está usando este celular?', [
+    h('p', { class: 'suave', text: 'Seu nome vai aparecer em todas as fotos como responsável.' }),
+    campo('Seu nome', inp, true), campo('Empresa', emp)
+  ], [{ t: 'Salvar', v: true, cls: 'ouro', antes: () => {
+    if (!inp.value.trim()) { toast('Digite seu nome', true); return false; }
+    cfg.resp = inp.value.trim(); cfg.empresa = emp.value.trim() || 'Guardião'; salvarCfg(); atualizarStatus(); return true;
+  } }]);
+  setTimeout(() => inp.focus(), 100);
+}
+
+/* janela de modelo, posto e observação */
+function abrirModelo(faltas) {
+  let sel = cfg.modelo;
+  const chips = h('div', { class: 'chips' });
+  const area = h('div');
+  const postoInp = h('input', { type: 'text', value: cfg.posto, placeholder: 'Ex.: Chácara São Mateus', list: 'lista-postos' });
+  const dl = h('datalist', { id: 'lista-postos' }, (cfg.postos || []).map(p => h('option', { value: p })));
+  const nota = h('textarea', { value: cfg.nota, placeholder: 'Opcional — aparece na foto' });
+  const valores = {};
+  function desenhar() {
+    chips.replaceChildren(...modelos().map(m => h('button', {
+      class: 'chip' + (m.id === sel ? ' ativo' : ''), onclick: () => { lerCampos(); sel = m.id; desenhar(); }
+    }, h('i', { style: 'background:' + m.cor }), m.nome)));
+    const m = modelos().find(x => x.id === sel) || MODELOS_BASE[0];
+    const atuais = Object.assign({}, valoresModelo(m), valores[m.id] || {});
+    area.replaceChildren(...m.campos.map(cp => {
+      let inp;
+      if (cp.op) inp = h('select', { 'data-n': cp.n }, h('option', { value: '', text: '— escolher —' }), cp.op.map(o => h('option', { value: o, text: o, selected: atuais[cp.n] === o })));
+      else inp = h('input', { type: 'text', 'data-n': cp.n, value: atuais[cp.n] || '' });
+      return campo(cp.n, inp, cp.req);
+    }));
+    if (!m.campos.length) area.append(h('p', { class: 'suave', text: 'Este modelo não tem campos extras.' }));
+  }
+  function lerCampos() {
+    const v = {}; area.querySelectorAll('[data-n]').forEach(i => v[i.getAttribute('data-n')] = i.value);
+    valores[sel] = v;
+  }
+  desenhar();
+  const corpo = [
+    faltas && faltas.length ? h('p', { style: 'color:var(--verm2);font-weight:600', text: 'Preencha antes de fotografar: ' + faltas.join(', ') }) : null,
+    h('h3', { text: 'Modelo do carimbo' }), chips, area,
+    campo('Posto / local', postoInp, true), dl, campo('Observação', nota)
+  ];
+  modal('Dados da foto', corpo, [{ t: 'Pronto', v: true, cls: 'ouro', antes: () => {
+    lerCampos(); cfg.modelo = sel;
+    Object.keys(valores).forEach(id => { const mm = modelos().find(x => x.id === id); if (mm) Object.assign(valoresModelo(mm), valores[id]); });
+    cfg.posto = postoInp.value.trim(); cfg.nota = nota.value;
+    if (cfg.posto && !(cfg.postos || []).includes(cfg.posto)) { cfg.postos = (cfg.postos || []).concat(cfg.posto).slice(-40); }
+    salvarCfg(); atualizarStatus(); return true;
+  } }]);
+}
+
+/* ---------- status e prévia ---------- */
+function atualizarStatus() {
+  const sh = $('#st-hora'), sg = $('#st-gps');
+  if (sh) {
+    const a = Relogio.agora();
+    sh.className = 'selo ' + (a.ok ? 'ok' : 'alerta');
+    sh.lastChild.textContent = a.ok ? 'Hora verificada' : (navigator.onLine ? 'Verificando hora…' : 'Hora do aparelho (sem internet)');
+  }
+  if (sg) {
+    const p = GPS.atual();
+    sg.className = 'selo ' + (p ? (p.acc <= 50 ? 'ok' : 'alerta') : 'erro');
+    sg.lastChild.textContent = p ? `GPS ±${Math.round(p.acc)} m` : (GPS.erro || 'Procurando GPS');
+  }
+  const pv = $('#previa'); if (!pv) return;
+  const a = Relogio.agora(), d = new Date(a.ms), m = modeloAtual(), p = GPS.atual();
+  $('.hh', pv).textContent = fHora.format(d);
+  $('.d1', pv).textContent = fData.format(d);
+  $('.d2', pv).textContent = cap(fDia.format(d));
+  const tg = $('.tag', pv); tg.textContent = m.nome.toUpperCase(); tg.style.background = m.cor; tg.style.color = contraste(m.cor);
+  const cps = camposPreenchidos(m).map(c => c.n + ': ' + c.v).join(' · ');
+  $('.l1', pv).textContent = cps || '—';
+  $('.l2', pv).textContent = 'Posto: ' + (cfg.posto || '(toque em Dados para informar)');
+  $('.l3', pv).textContent = p ? (Endereco.atual || `${p.lat.toFixed(5)}, ${p.lon.toFixed(5)}`) : 'Aguardando localização…';
+  $('.l4', pv).textContent = 'Responsável: ' + (cfg.resp || '—');
+  const bm = $('.btn-modelo'); if (bm) bm.textContent = m.nome;
+}
+
+/* ---------- abas ---------- */
+const ABAS = [
+  ['camera', 'Câmera', 'camera'], ['galeria', 'Galeria', 'galeria'], ['equipe', 'Equipe', 'equipe'],
+  ['relatorios', 'Relatórios', 'relatorio'], ['ajustes', 'Ajustes', 'ajustes']
+];
+function atualizarAbas() {
+  const nav = $('#abas');
+  const pend = estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').length;
+  nav.replaceChildren(...ABAS.map(([id, nome, ic]) => h('button', {
+    class: estado.aba === id ? 'ativo' : '', onclick: () => irPara(id)
+  }, icone(ic), nome, id === 'equipe' && FS.pronto() && pend ? h('span', { class: 'bolinha', text: pend }) : null)));
+}
+function irPara(aba) { estado.aba = aba; render(); }
+let previaTimer = null;
+function render() {
+  atualizarAbas();
+  clearInterval(previaTimer);
+  if (estado.aba !== 'camera') Cam.fechar();
+  const app = $('#app'); app.replaceChildren();
+  window.scrollTo(0, 0);
+  ({ camera: telaCamera, galeria: telaGaleria, equipe: telaEquipe, relatorios: telaRelatorios, ajustes: telaAjustes })[estado.aba](app);
+}
+
+/* ---------- tela: câmera ---------- */
+function telaCamera(app) {
+  const arq = h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'oculto', onchange: e => { capturarArquivo(e.target.files[0]); e.target.value = ''; } });
+  const ult = estado.fotos[0];
+  const selo = id => h('div', { class: 'selo', id }, h('i'), h('span'));
+  app.append(h('div', { class: 'cam' },
+    h('video', { id: 'video', playsinline: true, muted: true, autoplay: true }),
+    h('div', { class: 'sem-cam oculto', id: 'sem-cam' },
+      h('h3', { text: 'Câmera indisponível neste navegador' }),
+      h('p', { class: 'suave', text: 'Permita o uso da câmera nas configurações do navegador, ou use a câmera do próprio celular. A foto recebe o mesmo carimbo.' }),
+      h('button', { class: 'btn ouro', text: 'Tentar de novo', onclick: () => Cam.abrir() }),
+      h('button', { class: 'btn contorno', text: 'Usar câmera do celular', onclick: () => arq.click() })),
+    h('div', { class: 'cam-topo' },
+      h('div', { class: 'selos' }, selo('st-hora'), selo('st-gps')),
+      h('div', { class: 'botoes-topo' },
+        h('button', { class: 'redondo oculto', id: 'bt-lanterna', title: 'Lanterna', onclick: () => Cam.alternarLanterna() }, icone('lanterna')),
+        h('button', { class: 'redondo', title: 'Trocar câmera', onclick: () => { cfg.camLado = cfg.camLado === 'environment' ? 'user' : 'environment'; salvarCfg(); Cam.abrir(); } }, icone('virar')))),
+    h('div', { class: 'previa', id: 'previa' },
+      h('div', { class: 'ph' }, h('div', { class: 'hh' }), h('div', { class: 'dd' }, h('div', { class: 'd1' }), h('div', { class: 'd2' }))),
+      h('span', { class: 'tag' }), h('div', { class: 'll l1' }), h('div', { class: 'll l2' }), h('div', { class: 'll l3' }), h('div', { class: 'll l4' })),
+    h('div', { class: 'cam-base' },
+      h('div', { class: 'ultima', style: ult ? `background-image:url("${ult.thumb}")` : '', title: 'Galeria', onclick: () => irPara('galeria') }),
+      h('button', { class: 'disparo', id: 'disparo', title: 'Fotografar', onclick: capturar }),
+      h('button', { class: 'btn-modelo', onclick: () => abrirModelo() })),
+    h('div', { class: 'flash' }), arq));
+  atualizarStatus();
+  previaTimer = setInterval(atualizarStatus, 1000);
+  Cam.abrir();
+  if (!cfg.resp.trim()) setTimeout(pedirNome, 300);
+}
+
+/* ---------- visualizar e conferir ---------- */
+function listaDados(m, extra) {
+  const linhas = [
+    ['Código', m.code],
+    ['Data e hora', dataHora(m.ts)],
+    ['Hora', h('span', { class: m.verif ? 'verificado' : 'nao-verificado', text: m.verif ? 'Verificada pela internet' : 'Do aparelho (não verificada)' })],
+    ['Modelo', m.modelo && m.modelo.nome],
+    ...(m.campos || []).map(c => [c.n, c.v]),
+    ['Posto', m.posto], ['Observação', m.nota], ['Endereço', m.end],
+    ['Coordenadas', m.lat != null ? `${m.lat.toFixed(6)}, ${m.lon.toFixed(6)} (±${Math.round(m.acc)} m)` : 'Indisponível'],
+    ['Responsável', m.resp], ['Empresa', m.empresa],
+    ['Origem', m.origem === 'arquivo' ? 'Câmera do celular' : m.origem === 'equipe' ? 'Trazida da equipe' : 'Câmera do app'],
+    ['Na nuvem', m.sync ? 'Sim' : 'Ainda não'],
+    ['Assinatura digital', m.hash ? m.hash.slice(0, 24) + '…' : '']
+  ].concat(extra || []).filter(l => l[1] != null && l[1] !== '');
+  return h('dl', { class: 'dados' }, linhas.map(([a, b]) => [h('dt', { text: a }), h('dd', null, b)]));
+}
+const linkMapa = m => m.lat != null ? `https://www.google.com/maps?q=${m.lat},${m.lon}` : '';
+function nomeArquivo(m) {
+  const d = new Date(m.ts);
+  return `GI_${diaChave(m.ts)}_${fHora.format(d).replace(':', 'h')}_${slug(m.modelo && m.modelo.nome)}_${m.code}.jpg`;
+}
+async function compartilharArquivos(arquivos, titulo) {
+  if (navigator.canShare && navigator.canShare({ files: arquivos })) {
+    try { await navigator.share({ files: arquivos, title: titulo }); return true; } catch (e) { if (e && e.name === 'AbortError') return true; }
+  }
+  return false;
+}
+function baixar(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const a = h('a', { href: url, download: nome }); document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+async function abrirFoto(m) {
+  const blob = await DB.arquivo(m.id);
+  if (!blob) { aviso('Foto não encontrada', 'O arquivo desta foto não está mais neste aparelho.'); return; }
+  const url = URL.createObjectURL(blob);
+  const nome = nomeArquivo(m);
+  const corpo = h('div', { class: 'visor' }, h('img', { src: url, alt: m.code }), h('div', { style: 'height:12px' }), listaDados(m));
+  const r = await modal(m.modelo.nome + ' · ' + m.code, corpo, [
+    { t: 'Compartilhar', v: 'comp', cls: 'ouro' }, { t: 'Baixar', v: 'baixar' },
+    m.lat != null ? { t: 'Ver no mapa', v: 'mapa' } : null, { t: 'Excluir', v: 'excluir', cls: 'verm' }, { t: 'Fechar', v: null }
+  ].filter(Boolean), true);
+  if (r === 'comp') {
+    const ok = await compartilharArquivos([new File([blob], nome, { type: 'image/jpeg' })], m.code);
+    if (!ok) baixar(blob, nome);
+  } else if (r === 'baixar') baixar(blob, nome);
+  else if (r === 'mapa') window.open(linkMapa(m), '_blank');
+  else if (r === 'excluir') {
+    const ok = await confirmar('Excluir foto?', 'A foto será apagada deste celular.' + (m.sync ? ' A cópia que já está na nuvem da equipe continua guardada.' : ' Ela ainda não foi enviada à equipe e será perdida.'), 'Excluir');
+    if (ok) { await DB.apagar(m.id); estado.sel.delete(m.id); await recarregar(); render(); toast('Foto excluída'); }
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function abrirConferir() {
+  const cod = h('input', { type: 'text', placeholder: 'GI-XXXX-XXXX', style: 'text-transform:uppercase' });
+  const res = h('div');
+  const arq = h('input', { type: 'file', accept: 'image/jpeg,image/*', class: 'oculto' });
+  async function porCodigo() {
+    let c = cod.value.trim().toUpperCase().replace(/\s/g, ''); if (!c) return;
+    if (!c.startsWith('GI-')) c = 'GI-' + c;
+    if (/^GI-[A-Z0-9]{8}$/.test(c)) c = c.slice(0, 7) + '-' + c.slice(7);
+    res.replaceChildren(h('p', { class: 'suave', text: 'Procurando…' }));
+    let achou = estado.fotos.filter(f => f.code === c).map(f => ({ m: f, onde: 'Neste celular' }));
+    if (FS.pronto() && navigator.onLine) {
+      try { (await FS.consultar('codigo', c, 5)).forEach(m => { if (!achou.some(a => a.m.id === m.id)) achou.push({ m, onde: 'Nuvem da equipe' }); else achou.forEach(a => { if (a.m.id === m.id) a.onde += ' e na nuvem da equipe'; }); }); }
+      catch (e) { res.append(h('p', { class: 'suave', text: 'Não consegui consultar a nuvem agora.' })); }
+    }
+    mostrar(achou, c);
+  }
+  function mostrar(achou, alvo) {
+    res.replaceChildren();
+    if (!achou.length) { res.append(h('p', { style: 'color:var(--verm2);font-weight:700', text: `Nenhum registro encontrado para ${alvo}.` })); return; }
+    achou.forEach(a => res.append(h('div', { class: 'card' },
+      h('p', { class: 'verificado', text: '✓ Registro original encontrado — ' + a.onde }),
+      a.m.thumb ? h('img', { src: a.m.thumb, style: 'width:100%;border-radius:8px;margin-bottom:10px' }) : null,
+      listaDados(a.m))));
+    res.append(h('p', { class: 'suave', text: 'Confira se a foto recebida mostra exatamente os mesmos dados. Para provar que o arquivo não foi alterado, use "Conferir arquivo".' }));
+  }
+  arq.addEventListener('change', async () => {
+    const f = arq.files[0]; arq.value = ''; if (!f) return;
+    res.replaceChildren(h('p', { class: 'suave', text: 'Calculando a assinatura do arquivo…' }));
+    const hs = await sha256(f);
+    let achou = estado.fotos.filter(x => x.hash === hs || x.hashNuvem === hs).map(m => ({ m, onde: 'Neste celular' }));
+    if (!achou.length && FS.pronto() && navigator.onLine) {
+      try { achou = (await FS.consultar('hash', hs, 3)).concat(await FS.consultar('hashNuvem', hs, 3)).map(m => ({ m, onde: 'Nuvem da equipe' })); } catch (e) { /* sem nuvem */ }
+    }
+    if (achou.length) { mostrar(achou, ''); res.prepend(h('p', { class: 'verificado', text: '✓ ARQUIVO ORIGINAL — nenhuma alteração desde a captura.' })); }
+    else res.replaceChildren(h('p', { style: 'color:var(--verm2);font-weight:700', text: '✗ Este arquivo não confere com nenhuma foto original. Ele pode ter sido editado, recortado ou recomprimido (ex.: enviado pelo WhatsApp). Confira pelo código impresso na foto.' }));
+  });
+  modal('Conferir foto', [
+    h('p', { class: 'suave', text: 'Digite o código que aparece no carimbo da foto (CÓD.) para ver os dados originais.' }),
+    campo('Código da foto', cod),
+    h('div', { class: 'linha-bot', style: 'margin-bottom:12px' },
+      h('button', { class: 'btn ouro', text: 'Procurar código', onclick: porCodigo }),
+      h('button', { class: 'btn contorno', text: 'Conferir arquivo', onclick: () => arq.click() })),
+    arq, res
+  ], [{ t: 'Fechar', v: null }], true);
+  cod.addEventListener('keydown', e => { if (e.key === 'Enter') porCodigo(); });
+}
+
+/* ---------- tela: galeria ---------- */
+function telaGaleria(app) {
+  const t = h('div', { class: 'tela' }); app.append(t);
+  const F = estado.filtro;
+  t.append(h('div', { class: 'cab' }, h('h2', { text: 'Galeria' }), h('div', { class: 'cab-acoes' },
+    h('button', { class: 'btn mini', text: 'Conferir foto', onclick: abrirConferir }),
+    h('button', { class: 'btn mini contorno', text: 'Foto do celular', onclick: () => arq.click() }),
+    h('button', { class: 'btn mini' + (estado.selecionando ? ' ouro' : ''), text: estado.selecionando ? 'Concluir' : 'Selecionar', onclick: () => { estado.selecionando = !estado.selecionando; if (!estado.selecionando) estado.sel.clear(); render(); } }))));
+  const arq = h('input', { type: 'file', accept: 'image/*', capture: 'environment', class: 'oculto', onchange: e => { capturarArquivo(e.target.files[0]); e.target.value = ''; } });
+  t.append(arq);
+  if (!estado.fotos.length) { t.append(h('div', { class: 'vazio' }, h('p', { text: 'Nenhuma foto ainda.' }), h('button', { class: 'btn ouro', text: 'Abrir câmera', onclick: () => irPara('camera') }))); return; }
+  const postos = [...new Set(estado.fotos.map(f => f.posto).filter(Boolean))].sort();
+  const busca = h('input', { type: 'search', placeholder: 'Buscar código, endereço, observação…', value: F.busca });
+  const selP = h('select', null, h('option', { value: '', text: 'Todos os postos' }), postos.map(p => h('option', { value: p, text: p, selected: F.posto === p })));
+  const selM = h('select', null, h('option', { value: '', text: 'Todos os modelos' }), modelos().map(m => h('option', { value: m.id, text: m.nome, selected: F.modelo === m.id })));
+  const dia = h('input', { type: 'date', value: F.dia });
+  t.append(h('div', { class: 'filtros' }, h('div', { class: 'largo' }, busca), selP, selM, h('div', { class: 'largo' }, dia)));
+  const lista = h('div'); t.append(lista);
+  const barra = h('div', { class: 'barra-sel' + (estado.selecionando ? '' : ' oculto') }); t.append(barra);
+  function filtradas() {
+    const b = semAcento(F.busca).toLowerCase();
+    return estado.fotos.filter(f => {
+      if (F.posto && f.posto !== F.posto) return false;
+      if (F.modelo && f.modelo.id !== F.modelo) return false;
+      if (F.dia && diaChave(f.ts) !== F.dia) return false;
+      if (b) { const tx = semAcento([f.code, f.end, f.nota, f.posto, f.resp, (f.campos || []).map(c => c.v).join(' ')].join(' ')).toLowerCase(); if (!tx.includes(b)) return false; }
+      return true;
+    });
+  }
+  function desenharBarra() {
+    barra.replaceChildren(h('b', { text: `${estado.sel.size} selecionada(s)` }),
+      h('button', { class: 'btn mini', text: 'Todas', onclick: () => { filtradas().forEach(f => estado.sel.add(f.id)); desenhar(); } }),
+      h('button', { class: 'btn mini ouro', text: 'Fazer relatório', onclick: () => { if (!estado.sel.size) return toast('Selecione fotos', true); estado.rel.soSel = true; irPara('relatorios'); } }),
+      h('button', { class: 'btn mini', text: 'Compartilhar', onclick: compartilharSel }),
+      h('button', { class: 'btn mini verm', text: 'Excluir', onclick: excluirSel }));
+  }
+  function desenhar() {
+    const fs = filtradas(); lista.replaceChildren();
+    if (!fs.length) { lista.append(h('p', { class: 'vazio', text: 'Nenhuma foto com esses filtros.' })); desenharBarra(); return; }
+    lista.append(h('p', { class: 'suave', text: `${fs.length} foto(s)` }));
+    let dAtual = '', grade = null;
+    fs.slice(0, estado.limite).forEach(f => {
+      const dk = diaChave(f.ts);
+      if (dk !== dAtual) { dAtual = dk; lista.append(h('div', { class: 'dia-tit', text: cap(fDiaLongo.format(new Date(f.ts))) })); grade = h('div', { class: 'grade' }); lista.append(grade); }
+      const el = h('div', {
+        class: 'mini-foto' + (estado.sel.has(f.id) ? ' sel' : ''), style: `background-image:url("${f.thumb}")`,
+        onclick: () => {
+          if (estado.selecionando) { estado.sel.has(f.id) ? estado.sel.delete(f.id) : estado.sel.add(f.id); el.classList.toggle('sel'); desenharBarra(); }
+          else abrirFoto(f);
+        }
+      }, h('div', { class: 'marca' }, fHora.format(new Date(f.ts)) + ' · ' + f.modelo.nome), FS.pronto() ? h('div', { class: 'nuvem', title: f.sync ? 'Na nuvem' : 'Aguardando envio', text: f.sync ? '☁' : '…' }) : null);
+      grade.append(el);
+    });
+    if (fs.length > estado.limite) lista.append(h('button', { class: 'btn cheio', style: 'margin-top:12px', text: 'Mostrar mais', onclick: () => { estado.limite += 240; desenhar(); } }));
+    desenharBarra();
+  }
+  async function compartilharSel() {
+    const ids = [...estado.sel]; if (!ids.length) return toast('Selecione fotos', true);
+    const metas = estado.fotos.filter(f => estado.sel.has(f.id));
+    const arquivos = []; for (const m of metas) { const b = await DB.arquivo(m.id); if (b) arquivos.push(new File([b], nomeArquivo(m), { type: 'image/jpeg' })); }
+    if (!(await compartilharArquivos(arquivos, 'Fotos Guardião'))) {
+      const z = await zipar(await Promise.all(arquivos.map(async a => ({ nome: a.name, dados: new Uint8Array(await a.arrayBuffer()) }))));
+      baixar(z, `Fotos_Guardiao_${diaChave(Date.now())}.zip`);
+    }
+  }
+  async function excluirSel() {
+    if (!estado.sel.size) return toast('Selecione fotos', true);
+    const naoEnv = estado.fotos.filter(f => estado.sel.has(f.id) && !f.sync).length;
+    const ok = await confirmar('Excluir fotos?', `${estado.sel.size} foto(s) serão apagadas deste celular.` + (FS.pronto() && naoEnv ? ` ${naoEnv} ainda não foram enviadas à equipe.` : ''), 'Excluir');
+    if (!ok) return;
+    for (const id of estado.sel) await DB.apagar(id);
+    estado.sel.clear(); await recarregar(); render(); toast('Fotos excluídas');
+  }
+  busca.addEventListener('input', () => { F.busca = busca.value; desenhar(); });
+  selP.addEventListener('change', () => { F.posto = selP.value; desenhar(); });
+  selM.addEventListener('change', () => { F.modelo = selM.value; desenhar(); });
+  dia.addEventListener('change', () => { F.dia = dia.value; desenhar(); });
+  desenhar();
+}
+
+/* ---------- nuvem da equipe (Firestore) ---------- */
+const FS = {
+  pronto: () => !!(cfg.fbProj && cfg.fbKey && cfg.equipe),
+  base: () => `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(cfg.fbProj.trim())}/databases/(default)/documents`,
+  chave: () => encodeURIComponent(cfg.fbKey.trim()),
+  async enviar(meta) {
+    const blob = await DB.arquivo(meta.id); if (!blob) return true;
+    let r = await reduzir(blob, 1600, 0.78); let b64 = await blobParaBase64(r.blob);
+    if (b64.length > 850000) { r = await reduzir(blob, 1200, 0.68); b64 = await blobParaBase64(r.blob); }
+    if (b64.length > 950000) { r = await reduzir(blob, 960, 0.6); b64 = await blobParaBase64(r.blob); }
+    const hashNuvem = await sha256(r.blob);
+    const dados = Object.assign({}, meta); delete dados.thumb; delete dados.sync; dados.hashNuvem = hashNuvem;
+    const campos = {
+      equipe: { stringValue: cfg.equipe.trim().toUpperCase() }, codigo: { stringValue: meta.code }, hash: { stringValue: meta.hash },
+      hashNuvem: { stringValue: hashNuvem }, ts: { integerValue: String(meta.ts) }, quando: { timestampValue: new Date(meta.ts).toISOString() },
+      verif: { booleanValue: !!meta.verif }, resp: { stringValue: meta.resp || '' }, posto: { stringValue: meta.posto || '' },
+      dados: { stringValue: JSON.stringify(dados) }, miniatura: { stringValue: meta.thumb || '' }, imagem: { stringValue: b64 },
+      enviadoEm: { timestampValue: new Date().toISOString() }
+    };
+    const resp = await fetch(`${this.base()}/gi_fotos?documentId=${encodeURIComponent(meta.id)}&key=${this.chave()}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: campos })
+    });
+    if (resp.status === 409) { meta.hashNuvem = hashNuvem; return true; }
+    if (!resp.ok) { const t = await resp.text(); throw new Error(t.slice(0, 300)); }
+    meta.hashNuvem = hashNuvem; return true;
+  },
+  paraMeta(doc) {
+    const f = doc.fields || {}; let m = {};
+    try { m = JSON.parse(f.dados && f.dados.stringValue || '{}'); } catch (e) { m = {}; }
+    m.id = m.id || doc.name.split('/').pop(); m.code = m.code || (f.codigo && f.codigo.stringValue);
+    m.thumb = f.miniatura && f.miniatura.stringValue || ''; m.modelo = m.modelo || { nome: 'Foto', cor: '#6B6B6B', id: 'livre' };
+    m.campos = m.campos || []; m.sync = 1; return m;
+  },
+  async consultar(campo, valor, limite) {
+    const corpo = { structuredQuery: {
+      from: [{ collectionId: 'gi_fotos' }],
+      where: { fieldFilter: { field: { fieldPath: campo }, op: 'EQUAL', value: { stringValue: valor } } },
+      select: { fields: ['codigo', 'dados', 'miniatura'].map(f => ({ fieldPath: f })) }, limit: limite || 400 } };
+    const r = await fetch(`${this.base()}:runQuery?key=${this.chave()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
+    const j = await r.json();
+    if (!r.ok || !Array.isArray(j)) throw new Error((j && j.error && j.error.message) || (j[0] && j[0].error && j[0].error.message) || 'Falha na consulta');
+    return j.filter(x => x.document).map(x => this.paraMeta(x.document));
+  },
+  async imagem(id) {
+    const r = await fetch(`${this.base()}/gi_fotos/${encodeURIComponent(id)}?mask.fieldPaths=imagem&key=${this.chave()}`);
+    const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || 'Falha ao baixar a foto');
+    return base64ParaBlob(j.fields.imagem.stringValue, 'image/jpeg');
+  }
+};
+async function sincronizar(manual) {
+  if (estado.sincronizando || !FS.pronto() || !navigator.onLine) { if (manual && !navigator.onLine) toast('Sem internet agora', true); return; }
+  estado.sincronizando = true; let env = 0, erro = '';
+  try {
+    for (const m of estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').reverse()) {
+      try { await FS.enviar(m); m.sync = 1; await DB.gravar(m); env++; }
+      catch (e) { erro = String(e.message || e); break; }
+    }
+  } finally { estado.sincronizando = false; }
+  atualizarAbas();
+  if (manual) toast(erro ? 'Erro ao enviar: ' + erro.slice(0, 120) : env ? `${env} foto(s) enviadas` : 'Tudo em dia', !!erro);
+  if (estado.aba === 'equipe' && env) render();
+}
+
+/* ---------- tela: equipe ---------- */
+function telaEquipe(app) {
+  const t = h('div', { class: 'tela' }); app.append(t);
+  t.append(h('h2', { text: 'Equipe' }));
+  const proj = h('input', { type: 'text', value: cfg.fbProj, placeholder: 'Ex.: meu-projeto-123' });
+  const chave = h('input', { type: 'password', value: cfg.fbKey, placeholder: 'Chave da web do Firebase' });
+  const eq = h('input', { type: 'text', value: cfg.equipe, placeholder: 'Ex.: GUARDIAO', style: 'text-transform:uppercase' });
+  const regras = 'rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /gi_fotos/{id} {\n      allow read, create: if true;\n      allow update, delete: if false;\n    }\n  }\n}';
+  const conexao = h('div', { class: 'card' },
+    h('h3', { text: FS.pronto() ? 'Conexão da equipe' : 'Juntar as fotos da equipe' }),
+    FS.pronto() ? null : h('p', { class: 'suave', text: 'Com a equipe conectada, cada foto tirada pelos vigias sobe sozinha para um painel central. Sem internet, a foto fica guardada e sobe quando o sinal voltar. Todos os celulares da equipe usam os mesmos três dados abaixo.' }),
+    campo('Código do projeto Firebase', proj, true),
+    campo('Chave da web (apiKey)', chave, true),
+    campo('Código da equipe', eq, true, 'Todos os celulares da mesma empresa usam o mesmo código.'),
+    h('div', { class: 'linha-bot' },
+      h('button', { class: 'btn ouro', text: 'Salvar e testar', onclick: async () => {
+        cfg.fbProj = proj.value.trim(); cfg.fbKey = chave.value.trim(); cfg.equipe = eq.value.trim().toUpperCase(); salvarCfg();
+        if (!FS.pronto()) return toast('Preencha os três campos', true);
+        const c = carregando('Testando a conexão…');
+        try { await FS.consultar('equipe', cfg.equipe, 1); c.fim(); toast('Conectado com sucesso'); sincronizar(true); render(); }
+        catch (e) { c.fim(); aviso('Não conectou', 'Confira os dados e as regras do Firestore. Detalhe: ' + String(e.message || e)); }
+      } }),
+      h('button', { class: 'btn', text: 'Copiar regras do Firestore', onclick: async () => {
+        try { await navigator.clipboard.writeText(regras); toast('Regras copiadas'); }
+        catch (e) { aviso('Regras do Firestore', h('textarea', { value: regras, style: 'min-height:200px;font-family:monospace;font-size:12px' })); }
+      } })),
+    h('p', { class: 'suave', style: 'margin-top:10px', text: 'As regras permitem enviar e ver fotos, mas não deixam ninguém alterar ou apagar uma foto depois de enviada — é isso que garante a prova.' }));
+  if (!FS.pronto()) { t.append(conexao); return; }
+
+  const pend = estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').length;
+  t.append(h('div', { class: 'card' },
+    h('div', { class: 'status-linha' }, h('i', { style: 'background:' + (navigator.onLine ? 'var(--ok)' : '#f5a524') }), navigator.onLine ? 'Conectado à internet' : 'Sem internet — as fotos aguardam'),
+    h('div', { class: 'status-linha' }, h('i', { style: 'background:' + (pend ? '#f5a524' : 'var(--ok)') }), pend ? `${pend} foto(s) deste celular aguardando envio` : 'Todas as fotos deste celular já estão na nuvem'),
+    h('p', { class: 'suave', text: `Equipe ${cfg.equipe} · projeto ${cfg.fbProj}` }),
+    h('div', { class: 'linha-bot' },
+      h('button', { class: 'btn ouro', text: 'Enviar agora', onclick: () => sincronizar(true) }),
+      h('button', { class: 'btn', text: 'Alterar conexão', onclick: () => { t.append(conexao); conexao.scrollIntoView({ behavior: 'smooth' }); } }))));
+
+  const painel = h('div', { class: 'card' }); t.append(painel);
+  const NF = estado.nuvemFiltro;
+  async function carregar() {
+    painel.replaceChildren(h('p', { class: 'suave', text: 'Carregando fotos da equipe…' }));
+    try { estado.nuvem = (await FS.consultar('equipe', cfg.equipe, 500)).sort((a, b) => b.ts - a.ts); estado.nuvemCarregada = true; desenhar(); }
+    catch (e) { painel.replaceChildren(h('p', { style: 'color:var(--verm2)', text: 'Não foi possível carregar: ' + String(e.message || e) }), h('button', { class: 'btn', text: 'Tentar de novo', onclick: carregar })); }
+  }
+  function desenhar() {
+    const resps = [...new Set(estado.nuvem.map(m => m.resp).filter(Boolean))].sort();
+    const sr = h('select', null, h('option', { value: '', text: 'Todos os vigias' }), resps.map(r => h('option', { value: r, text: r, selected: NF.resp === r })));
+    const sd = h('input', { type: 'date', value: NF.dia });
+    const lista = h('div');
+    const fs = () => estado.nuvem.filter(m => (!NF.resp || m.resp === NF.resp) && (!NF.dia || diaChave(m.ts) === NF.dia));
+    function preencher() {
+      const v = fs(); lista.replaceChildren(h('p', { class: 'suave', text: `${v.length} foto(s) da equipe` }));
+      v.slice(0, 200).forEach(m => {
+        const local = estado.fotos.some(f => f.id === m.id);
+        lista.append(h('div', { class: 'item-nuvem' },
+          h('div', { class: 'mini-foto', style: `width:64px;flex:0 0 64px;background-image:url("${m.thumb}")`, onclick: () => verNuvem(m) }),
+          h('div', { class: 'info' }, h('b', { text: `${m.modelo.nome} · ${dataHora(m.ts)}` }), h('div', { text: `${m.resp || '—'} · ${m.posto || '—'}` }), h('div', { text: m.end || m.code })),
+          h('div', { class: 'pilha' },
+            h('button', { class: 'btn mini', text: 'Ver', onclick: () => verNuvem(m) }),
+            local ? h('span', { class: 'suave', text: 'Na galeria' }) : h('button', { class: 'btn mini contorno', text: 'Trazer', onclick: async e => { e.target.disabled = true; try { await importar(m); toast('Foto trazida para a galeria'); preencher(); } catch (er) { e.target.disabled = false; toast('Falhou: ' + er.message, true); } } }))));
+      });
+    }
+    sr.addEventListener('change', () => { NF.resp = sr.value; preencher(); });
+    sd.addEventListener('change', () => { NF.dia = sd.value; preencher(); });
+    painel.replaceChildren(
+      h('div', { class: 'cab' }, h('h3', { text: 'Painel da equipe' }), h('div', { class: 'cab-acoes' },
+        h('button', { class: 'btn mini', text: 'Atualizar', onclick: carregar }),
+        h('button', { class: 'btn mini ouro', text: 'Trazer todas', onclick: async () => {
+          const falta = fs().filter(m => !estado.fotos.some(f => f.id === m.id)); if (!falta.length) return toast('Todas já estão na galeria');
+          const c = carregando('Trazendo fotos…'); let n = 0;
+          try { for (const m of falta) { c.texto(`Trazendo ${++n} de ${falta.length}…`); await importar(m); } toast(`${n} foto(s) trazidas`); }
+          catch (e) { toast('Parou com erro: ' + e.message, true); }
+          c.fim(); preencher();
+        } }))),
+      h('p', { class: 'suave', text: 'Traga as fotos para a sua galeria para montar relatórios com fotos de vários vigias.' }),
+      h('div', { class: 'grade2', style: 'margin-bottom:8px' }, sr, sd), lista);
+    preencher();
+  }
+  async function importar(m) {
+    const blob = await FS.imagem(m.id);
+    const meta = Object.assign({}, m, { origem: 'equipe', sync: 1 });
+    if (!meta.thumb) { const r = await reduzir(blob, 360, 0.72); meta.thumb = 'data:image/jpeg;base64,' + await blobParaBase64(r.blob); }
+    await DB.gravar(meta, blob); await recarregar();
+  }
+  async function verNuvem(m) {
+    const c = carregando('Baixando foto…'); let blob;
+    try { blob = await FS.imagem(m.id); } catch (e) { c.fim(); return aviso('Erro', String(e.message || e)); }
+    c.fim(); const url = URL.createObjectURL(blob);
+    const r = await modal(m.modelo.nome + ' · ' + m.code, h('div', { class: 'visor' }, h('img', { src: url }), h('div', { style: 'height:12px' }), listaDados(m)),
+      [{ t: 'Baixar', v: 'b', cls: 'ouro' }, m.lat != null ? { t: 'Ver no mapa', v: 'm' } : null, { t: 'Fechar', v: null }].filter(Boolean), true);
+    if (r === 'b') baixar(blob, nomeArquivo(m)); else if (r === 'm') window.open(linkMapa(m), '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  if (estado.nuvemCarregada) desenhar(); else carregar();
+}
+
+/* ---------- ZIP (sem bibliotecas externas) ---------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u) { let c = 0xFFFFFFFF; for (let i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function horaDos(d) { return [(d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()]; }
+function zipar(arquivos, tipo) {
+  const enc = new TextEncoder(); const partes = [], central = []; let off = 0;
+  for (const a of arquivos) {
+    const nome = enc.encode(a.nome); const dados = typeof a.dados === 'string' ? enc.encode(a.dados) : a.dados;
+    const crc = crc32(dados); const [hr, dt] = horaDos(a.data || new Date());
+    const l = new DataView(new ArrayBuffer(30));
+    l.setUint32(0, 0x04034b50, true); l.setUint16(4, 20, true); l.setUint16(6, 0x0800, true); l.setUint16(8, 0, true);
+    l.setUint16(10, hr, true); l.setUint16(12, dt, true); l.setUint32(14, crc, true); l.setUint32(18, dados.length, true);
+    l.setUint32(22, dados.length, true); l.setUint16(26, nome.length, true); l.setUint16(28, 0, true);
+    partes.push(new Uint8Array(l.buffer), nome, dados);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true);
+    c.setUint16(10, 0, true); c.setUint16(12, hr, true); c.setUint16(14, dt, true); c.setUint32(16, crc, true);
+    c.setUint32(20, dados.length, true); c.setUint32(24, dados.length, true); c.setUint16(28, nome.length, true);
+    c.setUint32(42, off, true);
+    central.push(new Uint8Array(c.buffer), nome);
+    off += 30 + nome.length + dados.length;
+  }
+  const tam = central.reduce((s, c) => s + c.length, 0);
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, arquivos.length, true); e.setUint16(10, arquivos.length, true);
+  e.setUint32(12, tam, true); e.setUint32(16, off, true);
+  return new Blob([...partes, ...central, new Uint8Array(e.buffer)], { type: tipo || 'application/zip' });
+}
+async function lerZip(arquivo) {
+  const buf = new Uint8Array(await arquivo.arrayBuffer()); const dv = new DataView(buf.buffer);
+  let e = buf.length - 22; while (e >= 0 && dv.getUint32(e, true) !== 0x06054b50) e--;
+  if (e < 0) throw new Error('Arquivo de backup inválido');
+  const n = dv.getUint16(e + 10, true); let p = dv.getUint32(e + 16, true); const dec = new TextDecoder(); const out = {};
+  for (let i = 0; i < n; i++) {
+    const metodo = dv.getUint16(p + 10, true), tam = dv.getUint32(p + 20, true);
+    const nl = dv.getUint16(p + 28, true), xl = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), lo = dv.getUint32(p + 42, true);
+    const nome = dec.decode(buf.subarray(p + 46, p + 46 + nl));
+    const ini = lo + 30 + dv.getUint16(lo + 26, true) + dv.getUint16(lo + 28, true);
+    const bruto = buf.subarray(ini, ini + tam);
+    if (metodo === 0) out[nome] = bruto;
+    else if (metodo === 8 && window.DecompressionStream) out[nome] = new Uint8Array(await new Response(new Blob([bruto]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    p += 46 + nl + xl + cl;
+  }
+  return out;
+}
+
+/* ---------- PDF (sem bibliotecas externas) ---------- */
+const LARG_PDF = (() => {
+  const t = {}; const g = (s, w) => { for (const c of s) t[c] = w; };
+  g(" ,.:;!|ijlIft'[]/\\", 278); g('r-()"', 333); g('csvxyzkJ*', 500); g('0123456789abdeghnopqu$_?#L±', 556);
+  g('FTZ', 611); g('ABEKPSVXY&', 667); g('CDHNRUw', 722); g('GOQ', 778); g('mM', 833); g('W%', 944);
+  return t;
+})();
+function largTexto(s, tam, negrito) { let w = 0; for (const c of semAcento(s)) w += LARG_PDF[c] || 556; return w * tam / 1000 * (negrito ? 1.06 : 1); }
+function textoPdf(s) {
+  const map = { '–': '-', '—': '-', '“': '"', '”': '"', '‘': "'", '’': "'", '…': '...', '•': '\x95', '✓': 'v', '✗': 'x', 'º': 'º', '°': '°' };
+  let o = '';
+  for (const c of String(s ?? '')) { const m = map[c]; const ch = m != null ? m : (c.charCodeAt(0) < 256 ? c : '?'); o += ch; }
+  return o.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/[\r\n]+/g, ' ');
+}
+function quebrarPdf(s, tam, larg, negrito) {
+  const out = []; String(s ?? '').split('\n').forEach(par => {
+    let l = ''; for (const p of par.split(/\s+/)) { const tt = l ? l + ' ' + p : p; if (largTexto(tt, tam, negrito) > larg && l) { out.push(l); l = p; } else l = tt; }
+    out.push(l);
+  }); return out;
+}
+const latin1 = s => { const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 255; return u; };
+function corPdf(hex) { const n = parseInt(hex.replace('#', ''), 16); return `${((n >> 16) / 255).toFixed(3)} ${(((n >> 8) & 255) / 255).toFixed(3)} ${((n & 255) / 255).toFixed(3)}`; }
+
+async function gerarPDF(fotos, info, layout, prog) {
+  const PW = 595.28, PH = 841.89, M = 36;
+  const objs = []; const novo = () => { objs.push(null); return objs.length; };
+  const CAT = novo(), PAGS = novo(), F1 = novo(), F2 = novo();
+  objs[F1 - 1] = { d: '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>' };
+  objs[F2 - 1] = { d: '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>' };
+  const paginas = [];
+  async function imagemPdf(blob, max, q) {
+    const r = await reduzir(blob, max, q); const bytes = new Uint8Array(await r.blob.arrayBuffer()); const n = novo();
+    objs[n - 1] = { d: `<< /Type /XObject /Subtype /Image /Width ${r.w} /Height ${r.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>`, s: bytes };
+    return { n, w: r.w, h: r.h, nome: 'Im' + n };
+  }
+  let logo = null;
+  if (logoImg && logoImg.naturalWidth) {
+    const c = document.createElement('canvas'); c.width = logoImg.naturalWidth; c.height = logoImg.naturalHeight;
+    const x = c.getContext('2d'); x.fillStyle = '#0b0b0b'; x.fillRect(0, 0, c.width, c.height); x.drawImage(logoImg, 0, 0);
+    logo = await imagemPdf(await paraBlob(c, 'image/jpeg', 0.9), 300, 0.9);
+  }
+  function Pagina() {
+    const ops = [], imgs = {};
+    const p = {
+      ops, imgs,
+      ret(x, y, w, hh, cor) { ops.push(`${corPdf(cor)} rg ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} ${w.toFixed(2)} ${hh.toFixed(2)} re f`); },
+      borda(x, y, w, hh, cor, esp) { ops.push(`${corPdf(cor)} RG ${esp || 0.6} w ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} ${w.toFixed(2)} ${hh.toFixed(2)} re S`); },
+      texto(s, x, y, tam, negrito, cor, alinhar) {
+        let xx = x; if (alinhar === 'dir') xx = x - largTexto(s, tam, negrito); else if (alinhar === 'centro') xx = x - largTexto(s, tam, negrito) / 2;
+        ops.push(`BT /${negrito ? 'F2' : 'F1'} ${tam} Tf ${corPdf(cor || '#222222')} rg ${xx.toFixed(2)} ${(PH - y).toFixed(2)} Td (${textoPdf(s)}) Tj ET`);
+      },
+      img(im, x, y, w, hh) { imgs[im.nome] = im.n; ops.push(`q ${w.toFixed(2)} 0 0 ${hh.toFixed(2)} ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} cm /${im.nome} Do Q`); }
+    };
+    paginas.push(p); return p;
+  }
+  const geradoEm = Relogio.agora();
+  function cabecalho(p) {
+    p.ret(0, 0, PW, 62, '#0b0b0b'); p.ret(0, 62, PW, 3, '#D4AF37');
+    let tx = M;
+    if (logo) { const lh = 44, lw = lh * logo.w / logo.h; p.img(logo, M, 9, lw, lh); tx = M + lw + 12; }
+    p.texto('RELATÓRIO FOTOGRÁFICO', tx, 30, 14, true, '#F1D27A');
+    p.texto(info.empresa, tx, 46, 10, false, '#ffffff');
+    p.texto(info.ident, PW - M, 28, 10, true, '#ffffff', 'dir');
+  }
+  function rodape(p, i, total) {
+    p.ret(M, PH - 34, PW - 2 * M, 0.6, '#D4AF37');
+    p.texto(`Guardião Imagens · gerado em ${dataHora(geradoEm.ms)}${geradoEm.ok ? ' (hora verificada)' : ' (hora do aparelho)'}`, M, PH - 22, 7.5, false, '#666666');
+    p.texto(`Página ${i} de ${total}`, PW - M, PH - 22, 7.5, true, '#444444', 'dir');
+    p.texto(`Desenvolvido por ${AUTOR} · ${AUTOR_EMAIL}`, M, PH - 12, 6.5, false, '#999999');
+  }
+  function linhasFoto(m) {
+    const L = [];
+    L.push({ t: 'CÓD. ' + m.code, b: true, c: '#8A6D12' });
+    L.push({ t: `${fData.format(new Date(m.ts))} às ${fHoraS.format(new Date(m.ts))} — ${m.verif ? 'hora verificada' : 'hora do aparelho'}`, b: true, c: m.verif ? '#1E7A4C' : '#B26B00' });
+    L.push({ t: (m.modelo && m.modelo.nome) || '', b: true, c: '#222222' });
+    (m.campos || []).forEach(c => L.push({ t: `${c.n}: ${c.v}` }));
+    if (m.posto) L.push({ t: 'Posto: ' + m.posto });
+    if (m.nota) L.push({ t: 'Obs.: ' + m.nota, c: '#8A6D12' });
+    if (m.end) L.push({ t: 'Endereço: ' + m.end });
+    L.push({ t: m.lat != null ? `Coordenadas: ${m.lat.toFixed(6)}, ${m.lon.toFixed(6)} (±${Math.round(m.acc)} m)` : 'Coordenadas: indisponíveis' });
+    if (m.resp) L.push({ t: 'Responsável: ' + m.resp });
+    if (m.hash) L.push({ t: 'Assinatura: ' + m.hash.slice(0, 32), c: '#888888', tam: 6.5 });
+    return L;
+  }
+  function escreverLinhas(p, L, x, y, larg, yMax, tam) {
+    for (const l of L) {
+      const ts = l.tam || tam;
+      for (const q of quebrarPdf(l.t, ts, larg, l.b)) { if (y + ts > yMax) return y; p.texto(q, x, y + ts, ts, l.b, l.c); y += ts * 1.32; }
+    }
+    return y;
+  }
+  function encaixar(im, w, hh) { const f = Math.min(w / im.w, hh / im.h); return { w: im.w * f, h: im.h * f }; }
+
+  // capa
+  let grupos;
+  if (layout === 'ad') {
+    const mapa = new Map(); const soltas = [];
+    fotos.forEach(m => {
+      const v = {}; (m.campos || []).forEach(c => v[c.n] = c.v);
+      const et = (v['Etapa'] || '').toLowerCase();
+      if (!(m.modelo && m.modelo.id === 'antesdepois') || (et !== 'antes' && et !== 'depois')) { soltas.push(m); return; }
+      const k = semAcento(v['Local / item'] || m.posto || m.code).toLowerCase();
+      if (!mapa.has(k)) mapa.set(k, { nome: v['Local / item'] || m.posto || '', antes: [], depois: [] });
+      mapa.get(k)[et].push(m);
+    });
+    grupos = [];
+    mapa.forEach(g => {
+      const n = Math.max(g.antes.length, g.depois.length);
+      for (let i = 0; i < n; i++) grupos.push({ nome: g.nome + (n > 1 ? ` (${i + 1})` : ''), itens: [['ANTES', g.antes[i] || null, '#E07B24'], ['DEPOIS', g.depois[i] || null, '#2E9E5B']] });
+    });
+    for (let i = 0; i < soltas.length; i += 2) grupos.push({ nome: 'Outras fotos', itens: soltas.slice(i, i + 2).map(m => [String(m.modelo.nome || 'Foto').toUpperCase(), m, '#8A6D12']) });
+  }
+  const porPag = layout === '1' ? 1 : 2;
+  const totalPag = 1 + Math.ceil((layout === 'ad' ? grupos.length : fotos.length) / porPag);
+  const capa = Pagina(); cabecalho(capa);
+  let y = 100;
+  capa.texto('Relatório Fotográfico', M, y, 22, true, '#111111'); y += 12;
+  capa.ret(M, y, 60, 3, '#C8102E'); y += 26;
+  const periodo = fotos.length ? `${fData.format(new Date(fotos[0].ts))} a ${fData.format(new Date(fotos[fotos.length - 1].ts))}` : '-';
+  const postos = [...new Set(fotos.map(f => f.posto).filter(Boolean))].join(', ');
+  const vigias = [...new Set(fotos.map(f => f.resp).filter(Boolean))].join(', ');
+  const verif = fotos.filter(f => f.verif).length;
+  const tab = [['Empresa', info.empresa], ['Identificação', info.ident], ['Responsável pelo relatório', info.resp], info.cliente ? ['Cliente / local', info.cliente] : null,
+    ['Período das fotos', periodo], ['Posto(s)', postos || '-'], ['Fotógrafo(s)', vigias || '-'], ['Total de fotos', `${fotos.length} (${verif} com hora verificada)`]].filter(Boolean);
+  tab.forEach(([a, b], i) => {
+    const ls = quebrarPdf(b, 10.5, PW - 2 * M - 170); const alt = Math.max(24, ls.length * 14 + 10);
+    capa.ret(M, y, PW - 2 * M, alt, i % 2 ? '#ffffff' : '#F7F3E6');
+    capa.texto(a, M + 10, y + 16, 9.5, true, '#555555');
+    ls.forEach((l, j) => capa.texto(l, M + 170, y + 16 + j * 14, 10.5, false, '#111111'));
+    y += alt;
+  });
+  capa.borda(M, y - tab.reduce((s, [, b]) => s + Math.max(24, quebrarPdf(b, 10.5, PW - 2 * M - 170).length * 14 + 10), 0), PW - 2 * M, tab.reduce((s, [, b]) => s + Math.max(24, quebrarPdf(b, 10.5, PW - 2 * M - 170).length * 14 + 10), 0), '#D4AF37', 0.8);
+  y += 22;
+  if (info.obs) {
+    capa.texto('Observações', M, y, 11, true, '#111111'); y += 8;
+    quebrarPdf(info.obs, 10, PW - 2 * M).forEach(l => { y += 14; capa.texto(l, M, y, 10, false, '#222222'); }); y += 20;
+  }
+  capa.texto('Resumo das fotos', M, y, 11, true, '#111111'); y += 10;
+  const cols = [M, M + 92, M + 190, M + 310];
+  capa.ret(M, y, PW - 2 * M, 18, '#0b0b0b');
+  ['Código', 'Data e hora', 'Modelo', 'Posto / detalhe'].forEach((c, i) => capa.texto(c, cols[i] + 6, y + 12.5, 8.5, true, '#F1D27A'));
+  y += 18;
+  const limiteResumo = Math.max(0, Math.floor((PH - 150 - y) / 15));
+  fotos.slice(0, limiteResumo).forEach((m, i) => {
+    if (i % 2) capa.ret(M, y, PW - 2 * M, 15, '#F4F4F4');
+    const det = [m.posto, ...(m.campos || []).slice(0, 1).map(c => c.v)].filter(Boolean).join(' · ');
+    capa.texto(m.code, cols[0] + 6, y + 10.5, 8, true, '#8A6D12');
+    capa.texto(dataHora(m.ts), cols[1] + 6, y + 10.5, 8, false, '#222222');
+    capa.texto(quebrarPdf(m.modelo.nome, 8, 112)[0], cols[2] + 6, y + 10.5, 8, false, '#222222');
+    capa.texto(quebrarPdf(det, 8, PW - M - cols[3] - 10)[0], cols[3] + 6, y + 10.5, 8, false, '#222222');
+    y += 15;
+  });
+  if (fotos.length > limiteResumo) { y += 4; capa.texto(`… e mais ${fotos.length - limiteResumo} foto(s) nas páginas seguintes.`, M + 6, y + 10, 8.5, false, '#666666'); y += 16; }
+  y = Math.max(y + 16, PH - 112);
+  capa.ret(M, y, PW - 2 * M, 58, '#F7F3E6'); capa.ret(M, y, 4, 58, '#D4AF37');
+  quebrarPdf('Como conferir: cada foto tem um código único (CÓD.) gravado no carimbo. No app Guardião Imagens, abra Galeria > Conferir foto e digite o código para ver os dados originais registrados no momento da captura: hora conferida pela internet, local por GPS e responsável.', 8.5, PW - 2 * M - 24)
+    .forEach((l, i) => capa.texto(l, M + 14, y + 15 + i * 11.5, 8.5, false, '#333333'));
+  rodape(capa, 1, totalPag);
+
+  // páginas de fotos
+  const larg = PW - 2 * M; const topo = 82, base = PH - 44;
+  let pag = 1, feitas = 0;
+  if (layout === 'ad') {
+    for (let i = 0; i < grupos.length; i += 2) {
+      const p = Pagina(); cabecalho(p); pag++;
+      const altBloco = (base - topo) / 2;
+      for (let j = 0; j < 2 && i + j < grupos.length; j++) {
+        const g = grupos[i + j]; const y0 = topo + j * altBloco;
+        p.texto(g.nome || 'Local', M, y0 + 12, 11, true, '#111111');
+        const cw = (larg - 14) / 2;
+        for (const [k, item] of g.itens.entries()) {
+          const [rot, mm, corRot] = item; const x0 = M + k * (cw + 14);
+          const rl = Math.max(58, largTexto(rot, 8.5, true) + 16);
+          p.ret(x0, y0 + 20, rl, 15, corRot); p.texto(rot, x0 + rl / 2, y0 + 31, 8.5, true, '#ffffff', 'centro');
+          if (!mm) { p.borda(x0, y0 + 40, cw, 200, '#cccccc'); p.texto('Sem foto', x0 + cw / 2, y0 + 140, 10, false, '#999999', 'centro'); continue; }
+          if (prog) prog(++feitas);
+          const blob = await DB.arquivo(mm.id); if (!blob) continue;
+          const im = await imagemPdf(blob, 1100, 0.8); const e = encaixar(im, cw, 200);
+          p.ret(x0, y0 + 40, cw, 200, '#111111'); p.img(im, x0 + (cw - e.w) / 2, y0 + 40 + (200 - e.h) / 2, e.w, e.h);
+          escreverLinhas(p, linhasFoto(mm), x0, y0 + 246, cw, y0 + altBloco - 8, 7.5);
+        }
+      }
+      rodape(p, pag, totalPag);
+    }
+  } else {
+    for (let i = 0; i < fotos.length; i += porPag) {
+      const p = Pagina(); cabecalho(p); pag++;
+      for (let j = 0; j < porPag && i + j < fotos.length; j++) {
+        const m = fotos[i + j]; if (prog) prog(++feitas);
+        const blob = await DB.arquivo(m.id); if (!blob) continue;
+        const im = await imagemPdf(blob, layout === '1' ? 1600 : 1200, 0.8);
+        if (layout === '1') {
+          const bh = 470; const e = encaixar(im, larg, bh);
+          p.ret(M, topo, larg, bh, '#111111'); p.img(im, M + (larg - e.w) / 2, topo + (bh - e.h) / 2, e.w, e.h);
+          const L = linhasFoto(m); const meio = Math.ceil(L.length / 2);
+          escreverLinhas(p, L.slice(0, meio), M, topo + bh + 10, larg / 2 - 8, base, 9);
+          escreverLinhas(p, L.slice(meio), M + larg / 2 + 8, topo + bh + 10, larg / 2 - 8, base, 9);
+        } else {
+          const alt = (base - topo) / 2 - 6; const y0 = topo + j * (alt + 12);
+          const iw = 318, ih = alt; const e = encaixar(im, iw, ih);
+          p.ret(M, y0, iw, ih, '#111111'); p.img(im, M + (iw - e.w) / 2, y0 + (ih - e.h) / 2, e.w, e.h);
+          p.ret(M + iw + 12, y0, 2, ih, '#D4AF37');
+          escreverLinhas(p, linhasFoto(m), M + iw + 22, y0, larg - iw - 22, y0 + ih, 8.5);
+        }
+      }
+      rodape(p, pag, totalPag);
+    }
+  }
+
+  // montagem
+  const kids = [];
+  for (const p of paginas) {
+    const s = latin1(p.ops.join('\n')); const c = novo(); objs[c - 1] = { d: `<< /Length ${s.length} >>`, s };
+    const xo = Object.entries(p.imgs).map(([k, n]) => `/${k} ${n} 0 R`).join(' ');
+    const pg = novo(); objs[pg - 1] = { d: `<< /Type /Page /Parent ${PAGS} 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 ${F1} 0 R /F2 ${F2} 0 R >> /XObject << ${xo} >> >> /Contents ${c} 0 R >>` };
+    kids.push(pg);
+  }
+  objs[PAGS - 1] = { d: `<< /Type /Pages /Kids [${kids.map(k => k + ' 0 R').join(' ')}] /Count ${kids.length} >>` };
+  objs[CAT - 1] = { d: `<< /Type /Catalog /Pages ${PAGS} 0 R >>` };
+  const INFO = novo(); objs[INFO - 1] = { d: `<< /Title (${textoPdf('Relatório Fotográfico - ' + info.ident)}) /Author (${textoPdf(info.resp)}) /Producer (${textoPdf('Guardião Imagens ' + VERSAO + ' - ' + AUTOR)}) >>` };
+  const partes = [latin1('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')]; let pos = partes[0].length; const xref = [];
+  objs.forEach((o, i) => {
+    xref[i] = pos;
+    if (o.s) { const a = latin1(`${i + 1} 0 obj\n${o.d}\nstream\n`), b = latin1('\nendstream\nendobj\n'); partes.push(a, o.s, b); pos += a.length + o.s.length + b.length; }
+    else { const a = latin1(`${i + 1} 0 obj\n${o.d}\nendobj\n`); partes.push(a); pos += a.length; }
+  });
+  let x = `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
+  xref.forEach(o => { x += String(o).padStart(10, '0') + ' 00000 n \n'; });
+  x += `trailer\n<< /Size ${objs.length + 1} /Root ${CAT} 0 R /Info ${INFO} 0 R >>\nstartxref\n${pos}\n%%EOF`;
+  partes.push(latin1(x));
+  return new Blob(partes, { type: 'application/pdf' });
+}
+
+/* ---------- Excel (.xlsx) ---------- */
+function gerarXLSX(fotos, info) {
+  const cab = ['Código', 'Data', 'Hora', 'Hora verificada', 'Modelo', 'Detalhes', 'Posto', 'Observação', 'Endereço', 'Latitude', 'Longitude', 'Precisão (m)', 'Responsável', 'Mapa', 'Assinatura digital'];
+  const col = i => { let s = ''; i++; while (i) { const r = (i - 1) % 26; s = String.fromCharCode(65 + r) + s; i = Math.floor((i - 1) / 26); } return s; };
+  const cel = (v, r, c, st) => {
+    const ref = col(c) + r;
+    if (v && typeof v === 'object' && v.link) return `<c r="${ref}" t="str"><f>HYPERLINK("${xml(v.link)}","Abrir mapa")</f><v>Abrir mapa</v></c>`;
+    if (typeof v === 'number') return `<c r="${ref}"${st ? ` s="${st}"` : ''}><v>${v}</v></c>`;
+    return `<c r="${ref}" t="inlineStr"${st ? ` s="${st}"` : ''}><is><t xml:space="preserve">${xml(v)}</t></is></c>`;
+  };
+  const linhas = [`<row r="1">${cab.map((c, i) => cel(c, 1, i, 1)).join('')}</row>`];
+  fotos.forEach((m, k) => {
+    const r = k + 2; const d = new Date(m.ts);
+    const v = [m.code, fData.format(d), fHoraS.format(d), m.verif ? 'Sim' : 'Não', m.modelo.nome, (m.campos || []).map(c => `${c.n}: ${c.v}`).join(' | '), m.posto || '', m.nota || '', m.end || '',
+      m.lat != null ? Number(m.lat.toFixed(6)) : '', m.lon != null ? Number(m.lon.toFixed(6)) : '', m.acc != null ? Math.round(m.acc) : '', m.resp || '', m.lat != null ? { link: linkMapa(m) } : '', m.hash || ''];
+    linhas.push(`<row r="${r}">${v.map((x, i) => cel(x, r, i)).join('')}</row>`);
+  });
+  const larguras = [16, 12, 10, 10, 18, 40, 22, 30, 50, 12, 12, 10, 24, 14, 66];
+  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${larguras.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${linhas.join('')}</sheetData></worksheet>`;
+  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFF1D27A"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B0B0B"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  const nomeAba = xml(slug(info.ident).slice(0, 28) || 'Fotos');
+  return zipar([
+    { nome: '[Content_Types].xml', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
+    { nome: '_rels/.rels', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+    { nome: 'xl/workbook.xml', dados: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${nomeAba}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
+    { nome: 'xl/_rels/workbook.xml.rels', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
+    { nome: 'xl/worksheets/sheet1.xml', dados: sheet },
+    { nome: 'xl/styles.xml', dados: estilos }
+  ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+}
+
+/* ---------- Google Earth (KML) e CSV ---------- */
+function gerarKML(fotos, info, pasta, nomeFoto) {
+  const pm = fotos.filter(m => m.lat != null).map(m => {
+    const det = [`<b>${xml(m.modelo.nome)}</b>`, `${xml(dataHora(m.ts))} ${m.verif ? '(hora verificada)' : '(hora do aparelho)'}`, ...(m.campos || []).map(c => `${xml(c.n)}: ${xml(c.v)}`),
+      m.posto ? 'Posto: ' + xml(m.posto) : '', m.nota ? 'Obs.: ' + xml(m.nota) : '', m.end ? xml(m.end) : '', 'Responsável: ' + xml(m.resp), 'Código: ' + xml(m.code)].filter(Boolean).join('<br/>');
+    return `<Placemark><name>${xml(m.code)}</name><TimeStamp><when>${new Date(m.ts).toISOString()}</when></TimeStamp><styleUrl>#gi</styleUrl><description><![CDATA[<img src="${pasta}/${nomeFoto(m)}" width="460"/><br/>${det}]]></description><Point><coordinates>${m.lon},${m.lat},0</coordinates></Point></Placemark>`;
+  }).join('');
+  return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${xml(info.ident + ' - ' + info.empresa)}</name><Style id="gi"><IconStyle><color>ff37afd4</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/ylw-circle.png</href></Icon></IconStyle></Style>${pm}</Document></kml>`;
+}
+function gerarCSV(fotos) {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const L = [['Código', 'Data', 'Hora', 'Hora verificada', 'Modelo', 'Detalhes', 'Posto', 'Observação', 'Endereço', 'Latitude', 'Longitude', 'Precisão (m)', 'Responsável', 'Mapa', 'Assinatura digital'].map(q).join(';')];
+  fotos.forEach(m => { const d = new Date(m.ts); L.push([m.code, fData.format(d), fHoraS.format(d), m.verif ? 'Sim' : 'Não', m.modelo.nome, (m.campos || []).map(c => `${c.n}: ${c.v}`).join(' | '), m.posto, m.nota, m.end, m.lat != null ? String(m.lat.toFixed(6)).replace('.', ',') : '', m.lon != null ? String(m.lon.toFixed(6)).replace('.', ',') : '', m.acc != null ? Math.round(m.acc) : '', m.resp, linkMapa(m), m.hash].map(q).join(';')); });
+  return '\uFEFF' + L.join('\r\n');
+}
+
+/* ---------- tela: relatórios ---------- */
+function telaRelatorios(app) {
+  const t = h('div', { class: 'tela' }); app.append(t);
+  const r = estado.rel;
+  if (!r.de) { const d = new Date(Date.now() - 6 * 86400000); r.de = diaChave(d.getTime()); r.ate = diaChave(Date.now()); }
+  if (!r.respRel) r.respRel = cfg.resp;
+  t.append(h('h2', { text: 'Relatórios' }));
+  if (!estado.fotos.length) { t.append(h('div', { class: 'vazio', text: 'Tire algumas fotos para gerar relatórios.' })); return; }
+  const postos = [...new Set(estado.fotos.map(f => f.posto).filter(Boolean))].sort();
+  const resps = [...new Set(estado.fotos.map(f => f.resp).filter(Boolean))].sort();
+  const contador = h('div', { class: 'contador' });
+  const filtrar = () => estado.fotos.filter(f => {
+    if (r.soSel && estado.sel.size) return estado.sel.has(f.id);
+    const d = diaChave(f.ts);
+    if (r.de && d < r.de) return false; if (r.ate && d > r.ate) return false;
+    if (r.posto && f.posto !== r.posto) return false; if (r.modelo && f.modelo.id !== r.modelo) return false;
+    if (r.resp && f.resp !== r.resp) return false; return true;
+  }).sort((a, b) => a.ts - b.ts);
+  const filtrosBox = h('div');
+  const atualizar = () => {
+    const n = filtrar().length;
+    contador.textContent = n ? `${n} foto(s) entram neste relatório` : 'Nenhuma foto com esses filtros';
+    filtrosBox.classList.toggle('oculto', !!(r.soSel && estado.sel.size));
+  };
+  const liga = (el, k, ev) => { el.addEventListener(ev || 'change', () => { r[k] = el.type === 'checkbox' ? el.checked : el.value; atualizar(); }); return el; };
+  const card1 = h('div', { class: 'card' }, h('h3', { text: '1. Quais fotos' }));
+  if (estado.sel.size) card1.append(h('label', { class: 'campo', style: 'display:flex;gap:10px;align-items:center' },
+    liga(h('input', { type: 'checkbox', checked: r.soSel, style: 'width:20px;height:20px' }), 'soSel'), h('span', { style: 'margin:0;color:var(--texto)', text: `Usar só as ${estado.sel.size} fotos selecionadas na galeria` })));
+  filtrosBox.append(
+    h('div', { class: 'grade2' }, campo('De', liga(h('input', { type: 'date', value: r.de }), 'de')), campo('Até', liga(h('input', { type: 'date', value: r.ate }), 'ate'))),
+    campo('Posto', liga(h('select', null, h('option', { value: '', text: 'Todos' }), postos.map(p => h('option', { value: p, text: p, selected: r.posto === p }))), 'posto')),
+    h('div', { class: 'grade2' },
+      campo('Modelo', liga(h('select', null, h('option', { value: '', text: 'Todos' }), modelos().map(m => h('option', { value: m.id, text: m.nome, selected: r.modelo === m.id }))), 'modelo')),
+      campo('Fotógrafo', liga(h('select', null, h('option', { value: '', text: 'Todos' }), resps.map(p => h('option', { value: p, text: p, selected: r.resp === p }))), 'resp'))));
+  card1.append(filtrosBox, contador);
+  const card2 = h('div', { class: 'card' }, h('h3', { text: '2. Dados do relatório' }),
+    campo('Responsável pelo relatório', liga(h('input', { type: 'text', value: r.respRel }), 'respRel', 'input'), true),
+    campo('Identificação da ronda / ocorrência', liga(h('input', { type: 'text', value: r.ident, placeholder: 'Ex.: Ronda noturna 08/11 — Chácara São Mateus' }), 'ident', 'input'), true),
+    campo('Cliente / local', liga(h('input', { type: 'text', value: r.cliente }), 'cliente', 'input')),
+    campo('Observações gerais', liga(h('textarea', { value: r.obs }), 'obs', 'input')));
+  const radios = h('div', { class: 'radio-linha' }, [['2', '2 fotos por página'], ['1', '1 foto grande por página'], ['ad', 'Antes e depois']].map(([v, n]) => h('button', {
+    class: 'chip' + (r.layout === v ? ' ativo' : ''), text: n, onclick: e => { r.layout = v; radios.querySelectorAll('.chip').forEach(c => c.classList.remove('ativo')); e.currentTarget.classList.add('ativo'); }
+  })));
+  const card3 = h('div', { class: 'card' }, h('h3', { text: '3. Gerar' }), h('div', { class: 'suave', style: 'margin-bottom:6px', text: 'Arrumação do PDF:' }), radios,
+    h('div', { class: 'formatos' },
+      h('button', { class: 'formato', onclick: () => gerar('pdf') }, h('b', { text: 'PDF' }), h('span', { text: 'Relatório pronto para entregar ao cliente' })),
+      h('button', { class: 'formato', onclick: () => gerar('xlsx') }, h('b', { text: 'Excel' }), h('span', { text: 'Planilha com todos os dados e link do mapa' })),
+      h('button', { class: 'formato', onclick: () => gerar('zip') }, h('b', { text: 'Pasta ZIP' }), h('span', { text: 'Fotos originais + planilha + mapa' })),
+      h('button', { class: 'formato', onclick: () => gerar('kmz') }, h('b', { text: 'Google Earth' }), h('span', { text: 'Cada foto marcada no mapa' }))));
+  t.append(card1, card2, card3);
+  atualizar();
+
+  async function gerar(tipo) {
+    const fotos = filtrar();
+    if (!fotos.length) return aviso('Sem fotos', 'Nenhuma foto entra nos filtros escolhidos.');
+    if (!r.respRel.trim() || !r.ident.trim()) return aviso('Faltam dados', 'Preencha o responsável pelo relatório e a identificação da ronda/ocorrência.');
+    const info = { empresa: cfg.empresa, resp: r.respRel.trim(), ident: r.ident.trim(), cliente: r.cliente.trim(), obs: r.obs.trim() };
+    const base = `Relatorio_${slug(info.ident)}_${diaChave(Date.now())}`;
+    const c = carregando('Preparando…');
+    try {
+      let blob, nome;
+      if (tipo === 'pdf') { blob = await gerarPDF(fotos, info, r.layout, n => c.texto(`Montando PDF… foto ${n} de ${fotos.length}`)); nome = base + '.pdf'; }
+      else if (tipo === 'xlsx') { blob = gerarXLSX(fotos, info); nome = base + '.xlsx'; }
+      else {
+        const arqs = []; const pasta = tipo === 'kmz' ? 'files' : 'fotos'; const nomeFoto = m => tipo === 'kmz' ? m.code + '.jpg' : nomeArquivo(m);
+        let n = 0;
+        for (const m of fotos) {
+          c.texto(`Juntando fotos… ${++n} de ${fotos.length}`);
+          if (tipo === 'kmz' && m.lat == null) continue;
+          let b = await DB.arquivo(m.id); if (!b) continue;
+          if (tipo === 'kmz') b = (await reduzir(b, 900, 0.75)).blob;
+          arqs.push({ nome: `${pasta}/${nomeFoto(m)}`, dados: new Uint8Array(await b.arrayBuffer()), data: new Date(m.ts) });
+        }
+        if (tipo === 'kmz') {
+          if (!arqs.length) { c.fim(); return aviso('Sem localização', 'Nenhuma das fotos tem coordenadas de GPS.'); }
+          arqs.unshift({ nome: 'doc.kml', dados: gerarKML(fotos, info, pasta, nomeFoto) });
+          blob = zipar(arqs, 'application/vnd.google-earth.kmz'); nome = base + '.kmz';
+        } else {
+          arqs.push({ nome: 'planilha.csv', dados: gerarCSV(fotos) }, { nome: 'mapa_google_earth.kml', dados: gerarKML(fotos, info, pasta, nomeFoto) });
+          blob = zipar(arqs); nome = base + '.zip';
+        }
+      }
+      c.fim();
+      const tipoMime = blob.type || 'application/octet-stream';
+      const tamanho = blob.size > 1048576 ? (blob.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(blob.size / 1024)) + ' KB';
+      const v = await modal('Relatório pronto', h('div', null, h('p', { text: nome }), h('p', { class: 'suave', text: `${fotos.length} foto(s) · ${tamanho}` })),
+        [{ t: 'Compartilhar', v: 's', cls: 'ouro' }, { t: 'Baixar', v: 'b' }, { t: 'Fechar', v: null }]);
+      if (v === 's') { if (!(await compartilharArquivos([new File([blob], nome, { type: tipoMime })], nome))) baixar(blob, nome); }
+      else if (v === 'b') baixar(blob, nome);
+    } catch (e) { c.fim(); aviso('Não foi possível gerar', String(e && e.message || e)); }
+  }
+}
+
+/* ---------- tela: ajustes ---------- */
+function telaAjustes(app) {
+  const t = h('div', { class: 'tela' }); app.append(t);
+  t.append(h('h2', { text: 'Ajustes' }));
+  const emp = h('input', { type: 'text', value: cfg.empresa });
+  const resp = h('input', { type: 'text', value: cfg.resp });
+  const prev = h('div', { class: 'logo-prev', style: `background-image:url("${cfg.logo || 'icon-192.png'}")` });
+  const arqLogo = h('input', { type: 'file', accept: 'image/*', class: 'oculto' });
+  arqLogo.addEventListener('change', async () => {
+    const f = arqLogo.files[0]; arqLogo.value = ''; if (!f) return;
+    try {
+      const im = await abrirImagem(f); const W = im.width || im.naturalWidth, H = im.height || im.naturalHeight; const k = Math.min(1, 512 / Math.max(W, H));
+      const c = document.createElement('canvas'); c.width = Math.round(W * k); c.height = Math.round(H * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+      cfg.logo = c.toDataURL('image/png'); salvarCfg(); await carregarLogo(); prev.style.backgroundImage = `url("${cfg.logo}")`; toast('Logo atualizada');
+    } catch (e) { toast('Não consegui abrir essa imagem', true); }
+  });
+  t.append(h('div', { class: 'card' }, h('h3', { text: 'Empresa e responsável' }),
+    campo('Nome da empresa (aparece nas fotos e relatórios)', emp),
+    campo('Seu nome (responsável pelas fotos)', resp, true),
+    h('div', { style: 'display:flex;gap:12px;align-items:center;margin-bottom:12px' }, prev, h('div', { class: 'pilha' },
+      h('button', { class: 'btn mini ouro', text: 'Trocar logo', onclick: () => arqLogo.click() }),
+      h('button', { class: 'btn mini', text: 'Usar logo padrão', onclick: async () => { cfg.logo = ''; salvarCfg(); await carregarLogo(); prev.style.backgroundImage = 'url("icon-192.png")'; } }))), arqLogo,
+    h('button', { class: 'btn ouro cheio', text: 'Salvar', onclick: () => {
+      if (!resp.value.trim()) return toast('Digite seu nome', true);
+      cfg.empresa = emp.value.trim() || 'Guardião'; cfg.resp = resp.value.trim(); salvarCfg(); toast('Salvo');
+    } })));
+
+  const lp = h('ul', { class: 'lista-simples' });
+  const desenharPostos = () => {
+    lp.replaceChildren(...(cfg.postos || []).map(p => h('li', null, h('span', { text: p }), h('button', { class: 'btn mini', text: 'Remover', onclick: () => { cfg.postos = cfg.postos.filter(x => x !== p); salvarCfg(); desenharPostos(); } }))));
+    if (!(cfg.postos || []).length) lp.append(h('li', { class: 'suave', text: 'Nenhum posto cadastrado' }));
+  };
+  const novoP = h('input', { type: 'text', placeholder: 'Nome do posto ou local' });
+  desenharPostos();
+  t.append(h('div', { class: 'card' }, h('h3', { text: 'Postos e locais' }), lp,
+    h('div', { style: 'display:flex;gap:8px' }, novoP, h('button', { class: 'btn ouro', text: 'Adicionar', onclick: () => {
+      const v = novoP.value.trim(); if (!v) return; cfg.postos = [...new Set((cfg.postos || []).concat(v))]; novoP.value = ''; salvarCfg(); desenharPostos();
+    } }))));
+
+  const lm = h('ul', { class: 'lista-simples' });
+  const desenharModelos = () => {
+    lm.replaceChildren(...modelos().map(m => h('li', null,
+      h('span', null, h('span', { class: 'chip', style: 'pointer-events:none' }, h('i', { style: 'background:' + m.cor }), m.nome), ' ', h('span', { class: 'suave', text: m.campos.map(c => c.n + (c.req ? '*' : '')).join(', ') || 'sem campos' })),
+      m.id.startsWith('c_') ? h('button', { class: 'btn mini', text: 'Remover', onclick: () => { cfg.modelosCustom = cfg.modelosCustom.filter(x => x.id !== m.id); if (cfg.modelo === m.id) cfg.modelo = 'ronda'; salvarCfg(); desenharModelos(); } }) : h('span', { class: 'suave', text: 'padrão' }))));
+  };
+  desenharModelos();
+  const nm = h('input', { type: 'text', placeholder: 'Ex.: Portaria — entrada de visitante' });
+  const nc = h('input', { type: 'text', placeholder: 'Ex.: Nome do visitante*, Placa, Apartamento' });
+  const cor = h('select', null, [['#D4AF37', 'Dourado'], ['#C8102E', 'Vermelho'], ['#2E9E5B', 'Verde'], ['#3D6FD8', 'Azul'], ['#8E5BD6', 'Roxo'], ['#E07B24', 'Laranja'], ['#6B6B6B', 'Cinza']].map(([v, n]) => h('option', { value: v, text: n })));
+  t.append(h('div', { class: 'card' }, h('h3', { text: 'Modelos de carimbo' }), lm,
+    h('p', { class: 'suave', text: 'Crie modelos próprios. Separe os campos por vírgula; coloque * no final dos campos obrigatórios.' }),
+    campo('Nome do modelo', nm), campo('Campos', nc), campo('Cor', cor),
+    h('button', { class: 'btn ouro cheio', text: 'Criar modelo', onclick: () => {
+      if (!nm.value.trim()) return toast('Dê um nome ao modelo', true);
+      const campos = nc.value.split(',').map(s => s.trim()).filter(Boolean).map(s => ({ n: s.replace(/\*$/, '').trim(), req: s.endsWith('*') }));
+      cfg.modelosCustom = (cfg.modelosCustom || []).concat({ id: 'c_' + uid(), nome: nm.value.trim(), cor: cor.value, campos });
+      nm.value = ''; nc.value = ''; salvarCfg(); desenharModelos(); toast('Modelo criado');
+    } })));
+
+  t.append(h('div', { class: 'card' }, h('h3', { text: 'Qualidade das fotos' }),
+    h('div', { class: 'radio-linha' }, [['alta', 'Alta (melhor para provas)'], ['eco', 'Econômica (ocupa menos espaço)']].map(([v, n]) => h('button', {
+      class: 'chip' + (cfg.qualidade === v ? ' ativo' : ''), text: n, onclick: () => { cfg.qualidade = v; salvarCfg(); render(); }
+    })))));
+
+  const arqB = h('input', { type: 'file', accept: '.zip,application/zip', class: 'oculto' });
+  arqB.addEventListener('change', async () => {
+    const f = arqB.files[0]; arqB.value = ''; if (!f) return;
+    const c = carregando('Lendo backup…');
+    try {
+      const z = await lerZip(f); const js = z['backup.json']; if (!js) throw new Error('backup.json não encontrado');
+      const dados = JSON.parse(new TextDecoder().decode(js)); let n = 0;
+      const ids = new Set(estado.fotos.map(x => x.id));
+      for (const m of dados.fotos || []) {
+        if (ids.has(m.id)) continue; const b = z[`fotos/${m.id}.jpg`]; if (!b) continue;
+        await DB.gravar(m, new Blob([b], { type: 'image/jpeg' })); n++;
+      }
+      await recarregar(); c.fim(); aviso('Backup restaurado', `${n} foto(s) recuperadas. Fotos que já estavam no celular foram mantidas.`);
+    } catch (e) { c.fim(); aviso('Não foi possível restaurar', String(e.message || e)); }
+  });
+  t.append(h('div', { class: 'card' }, h('h3', { text: 'Backup' }),
+    h('p', { class: 'suave', text: `${estado.fotos.length} foto(s) neste celular. Faça backup antes de trocar de aparelho ou limpar o navegador.` }),
+    h('div', { class: 'linha-bot' },
+      h('button', { class: 'btn ouro', text: 'Fazer backup', onclick: async () => {
+        if (!estado.fotos.length) return toast('Nada para salvar');
+        const c = carregando('Montando backup…');
+        try {
+          const arqs = [{ nome: 'backup.json', dados: JSON.stringify({ app: 'Guardião Imagens', versao: VERSAO, criado: new Date().toISOString(), fotos: estado.fotos }) }];
+          let n = 0; for (const m of estado.fotos) { c.texto(`Foto ${++n} de ${estado.fotos.length}`); const b = await DB.arquivo(m.id); if (b) arqs.push({ nome: `fotos/${m.id}.jpg`, dados: new Uint8Array(await b.arrayBuffer()), data: new Date(m.ts) }); }
+          const z = zipar(arqs); c.fim(); baixar(z, `Backup_Guardiao_Imagens_${diaChave(Date.now())}.zip`);
+        } catch (e) { c.fim(); aviso('Erro no backup', String(e.message || e)); }
+      } }),
+      h('button', { class: 'btn', text: 'Restaurar backup', onclick: () => arqB.click() })), arqB));
+
+  if (estado.instalar) t.append(h('div', { class: 'card' }, h('h3', { text: 'Instalar no celular' }),
+    h('p', { class: 'suave', text: 'Coloca o Guardião Imagens na tela inicial, como um aplicativo, funcionando sem internet.' }),
+    h('button', { class: 'btn ouro cheio', text: 'Instalar app', onclick: async () => { estado.instalar.prompt(); await estado.instalar.userChoice; estado.instalar = null; render(); } })));
+
+  t.append(h('div', { class: 'rodape' }, h('div', { text: `Guardião Imagens ${VERSAO}` }), h('div', { text: `Desenvolvido por ${AUTOR}` }), h('div', { text: AUTOR_EMAIL })));
+}
+
+/* ---------- início ---------- */
+async function iniciar() {
+  try { await DB.abrir(); } catch (e) { $('#app').append(h('div', { class: 'tela' }, h('h2', { text: 'Erro ao abrir o armazenamento' }), h('p', { text: 'Este navegador bloqueou o armazenamento de fotos. Saia do modo anônimo ou use o Chrome.' }))); return; }
+  await carregarLogo();
+  await recarregar();
+  GPS.iniciar();
+  Relogio.sincronizar();
+  setInterval(() => Relogio.sincronizar(), 5 * 60000);
+  setInterval(() => sincronizar(), 60000);
+  window.addEventListener('online', () => { Relogio.sincronizar(); sincronizar(); atualizarStatus(); });
+  window.addEventListener('offline', atualizarStatus);
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { Cam.fechar(); return; }
+    Relogio.sincronizar();
+    if (estado.aba === 'camera') Cam.abrir();
+  });
+  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); estado.instalar = e; });
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  render();
+  sincronizar();
+}
+iniciar();
+</script>
+</body>
+</html>
