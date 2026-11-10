@@ -1,7 +1,7 @@
 /* Guardião Imagens — funcionamento offline
    Desenvolvido por Wendel Emílio de Souza Matias — oficial.respostas@gmail.com */
-const CACHE = 'guardiao-imagens-v3.0.0';
-const ARQUIVOS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
+const CACHE = 'guardiao-imagens-v3.1.0';
+const ARQUIVOS = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png', 'logo.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting()));

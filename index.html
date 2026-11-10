@@ -166,7 +166,7 @@ nav.abas svg{width:24px;height:24px}
    Guardião Imagens 3.0
    Desenvolvido por Wendel Emílio de Souza Matias — oficial.respostas@gmail.com
    ========================================================================== */
-const VERSAO = '3.0.0';
+const VERSAO = '3.1.0';
 const AUTOR = 'Wendel Emílio de Souza Matias';
 const AUTOR_EMAIL = 'oficial.respostas@gmail.com';
 const TZ = 'America/Sao_Paulo';
@@ -287,7 +287,7 @@ function miniatura(canvas, lado) {
 const LS = 'gi3_';
 const cfg = Object.assign({
   empresa: 'Guardião', resp: '', posto: '', postos: [], logo: '', modelo: 'ronda', campos: {}, nota: '',
-  qualidade: 'alta', camLado: 'environment', modelosCustom: [], fbProj: '', fbKey: '', equipe: ''
+  qualidade: 'alta', camLado: 'environment', modelosCustom: []
 }, (() => { try { return JSON.parse(localStorage.getItem(LS + 'cfg') || '{}'); } catch (e) { return {}; } })());
 function salvarCfg() { try { localStorage.setItem(LS + 'cfg', JSON.stringify(cfg)); } catch (e) { toast('Não foi possível salvar as configurações', true); } }
 
@@ -350,9 +350,7 @@ const DB = {
 const estado = {
   aba: 'camera', fotos: [], sel: new Set(), selecionando: false,
   filtro: { busca: '', posto: '', modelo: '', dia: '' }, limite: 240,
-  rel: { de: '', ate: '', posto: '', modelo: '', resp: '', soSel: false, respRel: '', ident: '', cliente: '', obs: '', layout: '2' },
-  nuvem: [], nuvemCarregada: false, nuvemFiltro: { resp: '', dia: '' },
-  instalar: null, ocupado: false, sincronizando: false
+  instalar: null, ocupado: false
 };
 async function recarregar() { estado.fotos = await DB.todas(); atualizarAbas(); }
 
@@ -426,7 +424,7 @@ let logoImg = null;
 function carregarLogo() {
   return new Promise(res => {
     const im = new Image(); im.onload = () => { logoImg = im; res(); }; im.onerror = () => { logoImg = null; res(); };
-    im.src = cfg.logo || 'icon-192.png';
+    im.src = cfg.logo || 'logo.png';
   });
 }
 
@@ -517,7 +515,6 @@ async function registrar(src, origem) {
   await DB.gravar(meta, blob);
   estado.fotos.unshift(meta);
   atualizarAbas();
-  sincronizar();
   return meta;
 }
 function validarAntes() {
@@ -713,15 +710,13 @@ function atualizarStatus() {
 
 /* ---------- abas ---------- */
 const ABAS = [
-  ['camera', 'Câmera', 'camera'], ['galeria', 'Galeria', 'galeria'], ['equipe', 'Equipe', 'equipe'],
-  ['relatorios', 'Relatórios', 'relatorio'], ['ajustes', 'Ajustes', 'ajustes']
+  ['camera', 'Câmera', 'camera'], ['galeria', 'Galeria', 'galeria'], ['ajustes', 'Ajustes', 'ajustes']
 ];
 function atualizarAbas() {
   const nav = $('#abas');
-  const pend = estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').length;
   nav.replaceChildren(...ABAS.map(([id, nome, ic]) => h('button', {
     class: estado.aba === id ? 'ativo' : '', onclick: () => irPara(id)
-  }, icone(ic), nome, id === 'equipe' && FS.pronto() && pend ? h('span', { class: 'bolinha', text: pend }) : null)));
+  }, icone(ic), nome)));
 }
 function irPara(aba) { estado.aba = aba; render(); }
 let previaTimer = null;
@@ -731,7 +726,7 @@ function render() {
   if (estado.aba !== 'camera') Cam.fechar();
   const app = $('#app'); app.replaceChildren();
   window.scrollTo(0, 0);
-  ({ camera: telaCamera, galeria: telaGaleria, equipe: telaEquipe, relatorios: telaRelatorios, ajustes: telaAjustes })[estado.aba](app);
+  ({ camera: telaCamera, galeria: telaGaleria, ajustes: telaAjustes })[estado.aba](app);
 }
 
 /* ---------- tela: câmera ---------- */
@@ -776,8 +771,7 @@ function listaDados(m, extra) {
     ['Posto', m.posto], ['Observação', m.nota], ['Endereço', m.end],
     ['Coordenadas', m.lat != null ? `${m.lat.toFixed(6)}, ${m.lon.toFixed(6)} (±${Math.round(m.acc)} m)` : 'Indisponível'],
     ['Responsável', m.resp], ['Empresa', m.empresa],
-    ['Origem', m.origem === 'arquivo' ? 'Câmera do celular' : m.origem === 'equipe' ? 'Trazida da equipe' : 'Câmera do app'],
-    ['Na nuvem', m.sync ? 'Sim' : 'Ainda não'],
+    ['Origem', m.origem === 'arquivo' ? 'Câmera do celular' : 'Câmera do app'],
     ['Assinatura digital', m.hash ? m.hash.slice(0, 24) + '…' : '']
   ].concat(extra || []).filter(l => l[1] != null && l[1] !== '');
   return h('dl', { class: 'dados' }, linhas.map(([a, b]) => [h('dt', { text: a }), h('dd', null, b)]));
@@ -814,7 +808,7 @@ async function abrirFoto(m) {
   } else if (r === 'baixar') baixar(blob, nome);
   else if (r === 'mapa') window.open(linkMapa(m), '_blank');
   else if (r === 'excluir') {
-    const ok = await confirmar('Excluir foto?', 'A foto será apagada deste celular.' + (m.sync ? ' A cópia que já está na nuvem da equipe continua guardada.' : ' Ela ainda não foi enviada à equipe e será perdida.'), 'Excluir');
+    const ok = await confirmar('Excluir foto?', 'A foto será apagada deste celular. Se ainda não foi enviada a ninguém, ela será perdida.', 'Excluir');
     if (ok) { await DB.apagar(m.id); estado.sel.delete(m.id); await recarregar(); render(); toast('Foto excluída'); }
   }
   setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -829,10 +823,6 @@ function abrirConferir() {
     if (/^GI-[A-Z0-9]{8}$/.test(c)) c = c.slice(0, 7) + '-' + c.slice(7);
     res.replaceChildren(h('p', { class: 'suave', text: 'Procurando…' }));
     let achou = estado.fotos.filter(f => f.code === c).map(f => ({ m: f, onde: 'Neste celular' }));
-    if (FS.pronto() && navigator.onLine) {
-      try { (await FS.consultar('codigo', c, 5)).forEach(m => { if (!achou.some(a => a.m.id === m.id)) achou.push({ m, onde: 'Nuvem da equipe' }); else achou.forEach(a => { if (a.m.id === m.id) a.onde += ' e na nuvem da equipe'; }); }); }
-      catch (e) { res.append(h('p', { class: 'suave', text: 'Não consegui consultar a nuvem agora.' })); }
-    }
     mostrar(achou, c);
   }
   function mostrar(achou, alvo) {
@@ -849,9 +839,6 @@ function abrirConferir() {
     res.replaceChildren(h('p', { class: 'suave', text: 'Calculando a assinatura do arquivo…' }));
     const hs = await sha256(f);
     let achou = estado.fotos.filter(x => x.hash === hs || x.hashNuvem === hs).map(m => ({ m, onde: 'Neste celular' }));
-    if (!achou.length && FS.pronto() && navigator.onLine) {
-      try { achou = (await FS.consultar('hash', hs, 3)).concat(await FS.consultar('hashNuvem', hs, 3)).map(m => ({ m, onde: 'Nuvem da equipe' })); } catch (e) { /* sem nuvem */ }
-    }
     if (achou.length) { mostrar(achou, ''); res.prepend(h('p', { class: 'verificado', text: '✓ ARQUIVO ORIGINAL — nenhuma alteração desde a captura.' })); }
     else res.replaceChildren(h('p', { style: 'color:var(--verm2);font-weight:700', text: '✗ Este arquivo não confere com nenhuma foto original. Ele pode ter sido editado, recortado ou recomprimido (ex.: enviado pelo WhatsApp). Confira pelo código impresso na foto.' }));
   });
@@ -898,7 +885,6 @@ function telaGaleria(app) {
   function desenharBarra() {
     barra.replaceChildren(h('b', { text: `${estado.sel.size} selecionada(s)` }),
       h('button', { class: 'btn mini', text: 'Todas', onclick: () => { filtradas().forEach(f => estado.sel.add(f.id)); desenhar(); } }),
-      h('button', { class: 'btn mini ouro', text: 'Fazer relatório', onclick: () => { if (!estado.sel.size) return toast('Selecione fotos', true); estado.rel.soSel = true; irPara('relatorios'); } }),
       h('button', { class: 'btn mini', text: 'Compartilhar', onclick: compartilharSel }),
       h('button', { class: 'btn mini verm', text: 'Excluir', onclick: excluirSel }));
   }
@@ -916,7 +902,7 @@ function telaGaleria(app) {
           if (estado.selecionando) { estado.sel.has(f.id) ? estado.sel.delete(f.id) : estado.sel.add(f.id); el.classList.toggle('sel'); desenharBarra(); }
           else abrirFoto(f);
         }
-      }, h('div', { class: 'marca' }, fHora.format(new Date(f.ts)) + ' · ' + f.modelo.nome), FS.pronto() ? h('div', { class: 'nuvem', title: f.sync ? 'Na nuvem' : 'Aguardando envio', text: f.sync ? '☁' : '…' }) : null);
+      }, h('div', { class: 'marca' }, fHora.format(new Date(f.ts)) + ' · ' + f.modelo.nome));
       grade.append(el);
     });
     if (fs.length > estado.limite) lista.append(h('button', { class: 'btn cheio', style: 'margin-top:12px', text: 'Mostrar mais', onclick: () => { estado.limite += 240; desenhar(); } }));
@@ -933,8 +919,7 @@ function telaGaleria(app) {
   }
   async function excluirSel() {
     if (!estado.sel.size) return toast('Selecione fotos', true);
-    const naoEnv = estado.fotos.filter(f => estado.sel.has(f.id) && !f.sync).length;
-    const ok = await confirmar('Excluir fotos?', `${estado.sel.size} foto(s) serão apagadas deste celular.` + (FS.pronto() && naoEnv ? ` ${naoEnv} ainda não foram enviadas à equipe.` : ''), 'Excluir');
+    const ok = await confirmar('Excluir fotos?', `${estado.sel.size} foto(s) serão apagadas deste celular.`, 'Excluir');
     if (!ok) return;
     for (const id of estado.sel) await DB.apagar(id);
     estado.sel.clear(); await recarregar(); render(); toast('Fotos excluídas');
@@ -944,166 +929,6 @@ function telaGaleria(app) {
   selM.addEventListener('change', () => { F.modelo = selM.value; desenhar(); });
   dia.addEventListener('change', () => { F.dia = dia.value; desenhar(); });
   desenhar();
-}
-
-/* ---------- nuvem da equipe (Firestore) ---------- */
-const FS = {
-  pronto: () => !!(cfg.fbProj && cfg.fbKey && cfg.equipe),
-  base: () => `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(cfg.fbProj.trim())}/databases/(default)/documents`,
-  chave: () => encodeURIComponent(cfg.fbKey.trim()),
-  async enviar(meta) {
-    const blob = await DB.arquivo(meta.id); if (!blob) return true;
-    let r = await reduzir(blob, 1600, 0.78); let b64 = await blobParaBase64(r.blob);
-    if (b64.length > 850000) { r = await reduzir(blob, 1200, 0.68); b64 = await blobParaBase64(r.blob); }
-    if (b64.length > 950000) { r = await reduzir(blob, 960, 0.6); b64 = await blobParaBase64(r.blob); }
-    const hashNuvem = await sha256(r.blob);
-    const dados = Object.assign({}, meta); delete dados.thumb; delete dados.sync; dados.hashNuvem = hashNuvem;
-    const campos = {
-      equipe: { stringValue: cfg.equipe.trim().toUpperCase() }, codigo: { stringValue: meta.code }, hash: { stringValue: meta.hash },
-      hashNuvem: { stringValue: hashNuvem }, ts: { integerValue: String(meta.ts) }, quando: { timestampValue: new Date(meta.ts).toISOString() },
-      verif: { booleanValue: !!meta.verif }, resp: { stringValue: meta.resp || '' }, posto: { stringValue: meta.posto || '' },
-      dados: { stringValue: JSON.stringify(dados) }, miniatura: { stringValue: meta.thumb || '' }, imagem: { stringValue: b64 },
-      enviadoEm: { timestampValue: new Date().toISOString() }
-    };
-    const resp = await fetch(`${this.base()}/gi_fotos?documentId=${encodeURIComponent(meta.id)}&key=${this.chave()}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: campos })
-    });
-    if (resp.status === 409) { meta.hashNuvem = hashNuvem; return true; }
-    if (!resp.ok) { const t = await resp.text(); throw new Error(t.slice(0, 300)); }
-    meta.hashNuvem = hashNuvem; return true;
-  },
-  paraMeta(doc) {
-    const f = doc.fields || {}; let m = {};
-    try { m = JSON.parse(f.dados && f.dados.stringValue || '{}'); } catch (e) { m = {}; }
-    m.id = m.id || doc.name.split('/').pop(); m.code = m.code || (f.codigo && f.codigo.stringValue);
-    m.thumb = f.miniatura && f.miniatura.stringValue || ''; m.modelo = m.modelo || { nome: 'Foto', cor: '#6B6B6B', id: 'livre' };
-    m.campos = m.campos || []; m.sync = 1; return m;
-  },
-  async consultar(campo, valor, limite) {
-    const corpo = { structuredQuery: {
-      from: [{ collectionId: 'gi_fotos' }],
-      where: { fieldFilter: { field: { fieldPath: campo }, op: 'EQUAL', value: { stringValue: valor } } },
-      select: { fields: ['codigo', 'dados', 'miniatura'].map(f => ({ fieldPath: f })) }, limit: limite || 400 } };
-    const r = await fetch(`${this.base()}:runQuery?key=${this.chave()}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
-    const j = await r.json();
-    if (!r.ok || !Array.isArray(j)) throw new Error((j && j.error && j.error.message) || (j[0] && j[0].error && j[0].error.message) || 'Falha na consulta');
-    return j.filter(x => x.document).map(x => this.paraMeta(x.document));
-  },
-  async imagem(id) {
-    const r = await fetch(`${this.base()}/gi_fotos/${encodeURIComponent(id)}?mask.fieldPaths=imagem&key=${this.chave()}`);
-    const j = await r.json(); if (!r.ok) throw new Error((j.error && j.error.message) || 'Falha ao baixar a foto');
-    return base64ParaBlob(j.fields.imagem.stringValue, 'image/jpeg');
-  }
-};
-async function sincronizar(manual) {
-  if (estado.sincronizando || !FS.pronto() || !navigator.onLine) { if (manual && !navigator.onLine) toast('Sem internet agora', true); return; }
-  estado.sincronizando = true; let env = 0, erro = '';
-  try {
-    for (const m of estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').reverse()) {
-      try { await FS.enviar(m); m.sync = 1; await DB.gravar(m); env++; }
-      catch (e) { erro = String(e.message || e); break; }
-    }
-  } finally { estado.sincronizando = false; }
-  atualizarAbas();
-  if (manual) toast(erro ? 'Erro ao enviar: ' + erro.slice(0, 120) : env ? `${env} foto(s) enviadas` : 'Tudo em dia', !!erro);
-  if (estado.aba === 'equipe' && env) render();
-}
-
-/* ---------- tela: equipe ---------- */
-function telaEquipe(app) {
-  const t = h('div', { class: 'tela' }); app.append(t);
-  t.append(h('h2', { text: 'Equipe' }));
-  const proj = h('input', { type: 'text', value: cfg.fbProj, placeholder: 'Ex.: meu-projeto-123' });
-  const chave = h('input', { type: 'password', value: cfg.fbKey, placeholder: 'Chave da web do Firebase' });
-  const eq = h('input', { type: 'text', value: cfg.equipe, placeholder: 'Ex.: GUARDIAO', style: 'text-transform:uppercase' });
-  const regras = 'rules_version = \'2\';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /gi_fotos/{id} {\n      allow read, create: if true;\n      allow update, delete: if false;\n    }\n  }\n}';
-  const conexao = h('div', { class: 'card' },
-    h('h3', { text: FS.pronto() ? 'Conexão da equipe' : 'Juntar as fotos da equipe' }),
-    FS.pronto() ? null : h('p', { class: 'suave', text: 'Com a equipe conectada, cada foto tirada pelos vigias sobe sozinha para um painel central. Sem internet, a foto fica guardada e sobe quando o sinal voltar. Todos os celulares da equipe usam os mesmos três dados abaixo.' }),
-    campo('Código do projeto Firebase', proj, true),
-    campo('Chave da web (apiKey)', chave, true),
-    campo('Código da equipe', eq, true, 'Todos os celulares da mesma empresa usam o mesmo código.'),
-    h('div', { class: 'linha-bot' },
-      h('button', { class: 'btn ouro', text: 'Salvar e testar', onclick: async () => {
-        cfg.fbProj = proj.value.trim(); cfg.fbKey = chave.value.trim(); cfg.equipe = eq.value.trim().toUpperCase(); salvarCfg();
-        if (!FS.pronto()) return toast('Preencha os três campos', true);
-        const c = carregando('Testando a conexão…');
-        try { await FS.consultar('equipe', cfg.equipe, 1); c.fim(); toast('Conectado com sucesso'); sincronizar(true); render(); }
-        catch (e) { c.fim(); aviso('Não conectou', 'Confira os dados e as regras do Firestore. Detalhe: ' + String(e.message || e)); }
-      } }),
-      h('button', { class: 'btn', text: 'Copiar regras do Firestore', onclick: async () => {
-        try { await navigator.clipboard.writeText(regras); toast('Regras copiadas'); }
-        catch (e) { aviso('Regras do Firestore', h('textarea', { value: regras, style: 'min-height:200px;font-family:monospace;font-size:12px' })); }
-      } })),
-    h('p', { class: 'suave', style: 'margin-top:10px', text: 'As regras permitem enviar e ver fotos, mas não deixam ninguém alterar ou apagar uma foto depois de enviada — é isso que garante a prova.' }));
-  if (!FS.pronto()) { t.append(conexao); return; }
-
-  const pend = estado.fotos.filter(f => !f.sync && f.origem !== 'equipe').length;
-  t.append(h('div', { class: 'card' },
-    h('div', { class: 'status-linha' }, h('i', { style: 'background:' + (navigator.onLine ? 'var(--ok)' : '#f5a524') }), navigator.onLine ? 'Conectado à internet' : 'Sem internet — as fotos aguardam'),
-    h('div', { class: 'status-linha' }, h('i', { style: 'background:' + (pend ? '#f5a524' : 'var(--ok)') }), pend ? `${pend} foto(s) deste celular aguardando envio` : 'Todas as fotos deste celular já estão na nuvem'),
-    h('p', { class: 'suave', text: `Equipe ${cfg.equipe} · projeto ${cfg.fbProj}` }),
-    h('div', { class: 'linha-bot' },
-      h('button', { class: 'btn ouro', text: 'Enviar agora', onclick: () => sincronizar(true) }),
-      h('button', { class: 'btn', text: 'Alterar conexão', onclick: () => { t.append(conexao); conexao.scrollIntoView({ behavior: 'smooth' }); } }))));
-
-  const painel = h('div', { class: 'card' }); t.append(painel);
-  const NF = estado.nuvemFiltro;
-  async function carregar() {
-    painel.replaceChildren(h('p', { class: 'suave', text: 'Carregando fotos da equipe…' }));
-    try { estado.nuvem = (await FS.consultar('equipe', cfg.equipe, 500)).sort((a, b) => b.ts - a.ts); estado.nuvemCarregada = true; desenhar(); }
-    catch (e) { painel.replaceChildren(h('p', { style: 'color:var(--verm2)', text: 'Não foi possível carregar: ' + String(e.message || e) }), h('button', { class: 'btn', text: 'Tentar de novo', onclick: carregar })); }
-  }
-  function desenhar() {
-    const resps = [...new Set(estado.nuvem.map(m => m.resp).filter(Boolean))].sort();
-    const sr = h('select', null, h('option', { value: '', text: 'Todos os vigias' }), resps.map(r => h('option', { value: r, text: r, selected: NF.resp === r })));
-    const sd = h('input', { type: 'date', value: NF.dia });
-    const lista = h('div');
-    const fs = () => estado.nuvem.filter(m => (!NF.resp || m.resp === NF.resp) && (!NF.dia || diaChave(m.ts) === NF.dia));
-    function preencher() {
-      const v = fs(); lista.replaceChildren(h('p', { class: 'suave', text: `${v.length} foto(s) da equipe` }));
-      v.slice(0, 200).forEach(m => {
-        const local = estado.fotos.some(f => f.id === m.id);
-        lista.append(h('div', { class: 'item-nuvem' },
-          h('div', { class: 'mini-foto', style: `width:64px;flex:0 0 64px;background-image:url("${m.thumb}")`, onclick: () => verNuvem(m) }),
-          h('div', { class: 'info' }, h('b', { text: `${m.modelo.nome} · ${dataHora(m.ts)}` }), h('div', { text: `${m.resp || '—'} · ${m.posto || '—'}` }), h('div', { text: m.end || m.code })),
-          h('div', { class: 'pilha' },
-            h('button', { class: 'btn mini', text: 'Ver', onclick: () => verNuvem(m) }),
-            local ? h('span', { class: 'suave', text: 'Na galeria' }) : h('button', { class: 'btn mini contorno', text: 'Trazer', onclick: async e => { e.target.disabled = true; try { await importar(m); toast('Foto trazida para a galeria'); preencher(); } catch (er) { e.target.disabled = false; toast('Falhou: ' + er.message, true); } } }))));
-      });
-    }
-    sr.addEventListener('change', () => { NF.resp = sr.value; preencher(); });
-    sd.addEventListener('change', () => { NF.dia = sd.value; preencher(); });
-    painel.replaceChildren(
-      h('div', { class: 'cab' }, h('h3', { text: 'Painel da equipe' }), h('div', { class: 'cab-acoes' },
-        h('button', { class: 'btn mini', text: 'Atualizar', onclick: carregar }),
-        h('button', { class: 'btn mini ouro', text: 'Trazer todas', onclick: async () => {
-          const falta = fs().filter(m => !estado.fotos.some(f => f.id === m.id)); if (!falta.length) return toast('Todas já estão na galeria');
-          const c = carregando('Trazendo fotos…'); let n = 0;
-          try { for (const m of falta) { c.texto(`Trazendo ${++n} de ${falta.length}…`); await importar(m); } toast(`${n} foto(s) trazidas`); }
-          catch (e) { toast('Parou com erro: ' + e.message, true); }
-          c.fim(); preencher();
-        } }))),
-      h('p', { class: 'suave', text: 'Traga as fotos para a sua galeria para montar relatórios com fotos de vários vigias.' }),
-      h('div', { class: 'grade2', style: 'margin-bottom:8px' }, sr, sd), lista);
-    preencher();
-  }
-  async function importar(m) {
-    const blob = await FS.imagem(m.id);
-    const meta = Object.assign({}, m, { origem: 'equipe', sync: 1 });
-    if (!meta.thumb) { const r = await reduzir(blob, 360, 0.72); meta.thumb = 'data:image/jpeg;base64,' + await blobParaBase64(r.blob); }
-    await DB.gravar(meta, blob); await recarregar();
-  }
-  async function verNuvem(m) {
-    const c = carregando('Baixando foto…'); let blob;
-    try { blob = await FS.imagem(m.id); } catch (e) { c.fim(); return aviso('Erro', String(e.message || e)); }
-    c.fim(); const url = URL.createObjectURL(blob);
-    const r = await modal(m.modelo.nome + ' · ' + m.code, h('div', { class: 'visor' }, h('img', { src: url }), h('div', { style: 'height:12px' }), listaDados(m)),
-      [{ t: 'Baixar', v: 'b', cls: 'ouro' }, m.lat != null ? { t: 'Ver no mapa', v: 'm' } : null, { t: 'Fechar', v: null }].filter(Boolean), true);
-    if (r === 'b') baixar(blob, nomeArquivo(m)); else if (r === 'm') window.open(linkMapa(m), '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-  if (estado.nuvemCarregada) desenhar(); else carregar();
 }
 
 /* ---------- ZIP (sem bibliotecas externas) ---------- */
@@ -1152,386 +977,13 @@ async function lerZip(arquivo) {
   return out;
 }
 
-/* ---------- PDF (sem bibliotecas externas) ---------- */
-const LARG_PDF = (() => {
-  const t = {}; const g = (s, w) => { for (const c of s) t[c] = w; };
-  g(" ,.:;!|ijlIft'[]/\\", 278); g('r-()"', 333); g('csvxyzkJ*', 500); g('0123456789abdeghnopqu$_?#L±', 556);
-  g('FTZ', 611); g('ABEKPSVXY&', 667); g('CDHNRUw', 722); g('GOQ', 778); g('mM', 833); g('W%', 944);
-  return t;
-})();
-function largTexto(s, tam, negrito) { let w = 0; for (const c of semAcento(s)) w += LARG_PDF[c] || 556; return w * tam / 1000 * (negrito ? 1.06 : 1); }
-function textoPdf(s) {
-  const map = { '–': '-', '—': '-', '“': '"', '”': '"', '‘': "'", '’': "'", '…': '...', '•': '\x95', '✓': 'v', '✗': 'x', 'º': 'º', '°': '°' };
-  let o = '';
-  for (const c of String(s ?? '')) { const m = map[c]; const ch = m != null ? m : (c.charCodeAt(0) < 256 ? c : '?'); o += ch; }
-  return o.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/[\r\n]+/g, ' ');
-}
-function quebrarPdf(s, tam, larg, negrito) {
-  const out = []; String(s ?? '').split('\n').forEach(par => {
-    let l = ''; for (const p of par.split(/\s+/)) { const tt = l ? l + ' ' + p : p; if (largTexto(tt, tam, negrito) > larg && l) { out.push(l); l = p; } else l = tt; }
-    out.push(l);
-  }); return out;
-}
-const latin1 = s => { const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 255; return u; };
-function corPdf(hex) { const n = parseInt(hex.replace('#', ''), 16); return `${((n >> 16) / 255).toFixed(3)} ${(((n >> 8) & 255) / 255).toFixed(3)} ${((n & 255) / 255).toFixed(3)}`; }
-
-async function gerarPDF(fotos, info, layout, prog) {
-  const PW = 595.28, PH = 841.89, M = 36;
-  const objs = []; const novo = () => { objs.push(null); return objs.length; };
-  const CAT = novo(), PAGS = novo(), F1 = novo(), F2 = novo();
-  objs[F1 - 1] = { d: '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>' };
-  objs[F2 - 1] = { d: '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>' };
-  const paginas = [];
-  async function imagemPdf(blob, max, q) {
-    const r = await reduzir(blob, max, q); const bytes = new Uint8Array(await r.blob.arrayBuffer()); const n = novo();
-    objs[n - 1] = { d: `<< /Type /XObject /Subtype /Image /Width ${r.w} /Height ${r.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>`, s: bytes };
-    return { n, w: r.w, h: r.h, nome: 'Im' + n };
-  }
-  let logo = null;
-  if (logoImg && logoImg.naturalWidth) {
-    const c = document.createElement('canvas'); c.width = logoImg.naturalWidth; c.height = logoImg.naturalHeight;
-    const x = c.getContext('2d'); x.fillStyle = '#0b0b0b'; x.fillRect(0, 0, c.width, c.height); x.drawImage(logoImg, 0, 0);
-    logo = await imagemPdf(await paraBlob(c, 'image/jpeg', 0.9), 300, 0.9);
-  }
-  function Pagina() {
-    const ops = [], imgs = {};
-    const p = {
-      ops, imgs,
-      ret(x, y, w, hh, cor) { ops.push(`${corPdf(cor)} rg ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} ${w.toFixed(2)} ${hh.toFixed(2)} re f`); },
-      borda(x, y, w, hh, cor, esp) { ops.push(`${corPdf(cor)} RG ${esp || 0.6} w ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} ${w.toFixed(2)} ${hh.toFixed(2)} re S`); },
-      texto(s, x, y, tam, negrito, cor, alinhar) {
-        let xx = x; if (alinhar === 'dir') xx = x - largTexto(s, tam, negrito); else if (alinhar === 'centro') xx = x - largTexto(s, tam, negrito) / 2;
-        ops.push(`BT /${negrito ? 'F2' : 'F1'} ${tam} Tf ${corPdf(cor || '#222222')} rg ${xx.toFixed(2)} ${(PH - y).toFixed(2)} Td (${textoPdf(s)}) Tj ET`);
-      },
-      img(im, x, y, w, hh) { imgs[im.nome] = im.n; ops.push(`q ${w.toFixed(2)} 0 0 ${hh.toFixed(2)} ${x.toFixed(2)} ${(PH - y - hh).toFixed(2)} cm /${im.nome} Do Q`); }
-    };
-    paginas.push(p); return p;
-  }
-  const geradoEm = Relogio.agora();
-  function cabecalho(p) {
-    p.ret(0, 0, PW, 62, '#0b0b0b'); p.ret(0, 62, PW, 3, '#D4AF37');
-    let tx = M;
-    if (logo) { const lh = 44, lw = lh * logo.w / logo.h; p.img(logo, M, 9, lw, lh); tx = M + lw + 12; }
-    p.texto('RELATÓRIO FOTOGRÁFICO', tx, 30, 14, true, '#F1D27A');
-    p.texto(info.empresa, tx, 46, 10, false, '#ffffff');
-    p.texto(info.ident, PW - M, 28, 10, true, '#ffffff', 'dir');
-  }
-  function rodape(p, i, total) {
-    p.ret(M, PH - 34, PW - 2 * M, 0.6, '#D4AF37');
-    p.texto(`Guardião Imagens · gerado em ${dataHora(geradoEm.ms)}${geradoEm.ok ? ' (hora verificada)' : ' (hora do aparelho)'}`, M, PH - 22, 7.5, false, '#666666');
-    p.texto(`Página ${i} de ${total}`, PW - M, PH - 22, 7.5, true, '#444444', 'dir');
-    p.texto(`Desenvolvido por ${AUTOR} · ${AUTOR_EMAIL}`, M, PH - 12, 6.5, false, '#999999');
-  }
-  function linhasFoto(m) {
-    const L = [];
-    L.push({ t: 'CÓD. ' + m.code, b: true, c: '#8A6D12' });
-    L.push({ t: `${fData.format(new Date(m.ts))} às ${fHoraS.format(new Date(m.ts))} — ${m.verif ? 'hora verificada' : 'hora do aparelho'}`, b: true, c: m.verif ? '#1E7A4C' : '#B26B00' });
-    L.push({ t: (m.modelo && m.modelo.nome) || '', b: true, c: '#222222' });
-    (m.campos || []).forEach(c => L.push({ t: `${c.n}: ${c.v}` }));
-    if (m.posto) L.push({ t: 'Posto: ' + m.posto });
-    if (m.nota) L.push({ t: 'Obs.: ' + m.nota, c: '#8A6D12' });
-    if (m.end) L.push({ t: 'Endereço: ' + m.end });
-    L.push({ t: m.lat != null ? `Coordenadas: ${m.lat.toFixed(6)}, ${m.lon.toFixed(6)} (±${Math.round(m.acc)} m)` : 'Coordenadas: indisponíveis' });
-    if (m.resp) L.push({ t: 'Responsável: ' + m.resp });
-    if (m.hash) L.push({ t: 'Assinatura: ' + m.hash.slice(0, 32), c: '#888888', tam: 6.5 });
-    return L;
-  }
-  function escreverLinhas(p, L, x, y, larg, yMax, tam) {
-    for (const l of L) {
-      const ts = l.tam || tam;
-      for (const q of quebrarPdf(l.t, ts, larg, l.b)) { if (y + ts > yMax) return y; p.texto(q, x, y + ts, ts, l.b, l.c); y += ts * 1.32; }
-    }
-    return y;
-  }
-  function encaixar(im, w, hh) { const f = Math.min(w / im.w, hh / im.h); return { w: im.w * f, h: im.h * f }; }
-
-  // capa
-  let grupos;
-  if (layout === 'ad') {
-    const mapa = new Map(); const soltas = [];
-    fotos.forEach(m => {
-      const v = {}; (m.campos || []).forEach(c => v[c.n] = c.v);
-      const et = (v['Etapa'] || '').toLowerCase();
-      if (!(m.modelo && m.modelo.id === 'antesdepois') || (et !== 'antes' && et !== 'depois')) { soltas.push(m); return; }
-      const k = semAcento(v['Local / item'] || m.posto || m.code).toLowerCase();
-      if (!mapa.has(k)) mapa.set(k, { nome: v['Local / item'] || m.posto || '', antes: [], depois: [] });
-      mapa.get(k)[et].push(m);
-    });
-    grupos = [];
-    mapa.forEach(g => {
-      const n = Math.max(g.antes.length, g.depois.length);
-      for (let i = 0; i < n; i++) grupos.push({ nome: g.nome + (n > 1 ? ` (${i + 1})` : ''), itens: [['ANTES', g.antes[i] || null, '#E07B24'], ['DEPOIS', g.depois[i] || null, '#2E9E5B']] });
-    });
-    for (let i = 0; i < soltas.length; i += 2) grupos.push({ nome: 'Outras fotos', itens: soltas.slice(i, i + 2).map(m => [String(m.modelo.nome || 'Foto').toUpperCase(), m, '#8A6D12']) });
-  }
-  const porPag = layout === '1' ? 1 : 2;
-  const totalPag = 1 + Math.ceil((layout === 'ad' ? grupos.length : fotos.length) / porPag);
-  const capa = Pagina(); cabecalho(capa);
-  let y = 100;
-  capa.texto('Relatório Fotográfico', M, y, 22, true, '#111111'); y += 12;
-  capa.ret(M, y, 60, 3, '#C8102E'); y += 26;
-  const periodo = fotos.length ? `${fData.format(new Date(fotos[0].ts))} a ${fData.format(new Date(fotos[fotos.length - 1].ts))}` : '-';
-  const postos = [...new Set(fotos.map(f => f.posto).filter(Boolean))].join(', ');
-  const vigias = [...new Set(fotos.map(f => f.resp).filter(Boolean))].join(', ');
-  const verif = fotos.filter(f => f.verif).length;
-  const tab = [['Empresa', info.empresa], ['Identificação', info.ident], ['Responsável pelo relatório', info.resp], info.cliente ? ['Cliente / local', info.cliente] : null,
-    ['Período das fotos', periodo], ['Posto(s)', postos || '-'], ['Fotógrafo(s)', vigias || '-'], ['Total de fotos', `${fotos.length} (${verif} com hora verificada)`]].filter(Boolean);
-  tab.forEach(([a, b], i) => {
-    const ls = quebrarPdf(b, 10.5, PW - 2 * M - 170); const alt = Math.max(24, ls.length * 14 + 10);
-    capa.ret(M, y, PW - 2 * M, alt, i % 2 ? '#ffffff' : '#F7F3E6');
-    capa.texto(a, M + 10, y + 16, 9.5, true, '#555555');
-    ls.forEach((l, j) => capa.texto(l, M + 170, y + 16 + j * 14, 10.5, false, '#111111'));
-    y += alt;
-  });
-  capa.borda(M, y - tab.reduce((s, [, b]) => s + Math.max(24, quebrarPdf(b, 10.5, PW - 2 * M - 170).length * 14 + 10), 0), PW - 2 * M, tab.reduce((s, [, b]) => s + Math.max(24, quebrarPdf(b, 10.5, PW - 2 * M - 170).length * 14 + 10), 0), '#D4AF37', 0.8);
-  y += 22;
-  if (info.obs) {
-    capa.texto('Observações', M, y, 11, true, '#111111'); y += 8;
-    quebrarPdf(info.obs, 10, PW - 2 * M).forEach(l => { y += 14; capa.texto(l, M, y, 10, false, '#222222'); }); y += 20;
-  }
-  capa.texto('Resumo das fotos', M, y, 11, true, '#111111'); y += 10;
-  const cols = [M, M + 92, M + 190, M + 310];
-  capa.ret(M, y, PW - 2 * M, 18, '#0b0b0b');
-  ['Código', 'Data e hora', 'Modelo', 'Posto / detalhe'].forEach((c, i) => capa.texto(c, cols[i] + 6, y + 12.5, 8.5, true, '#F1D27A'));
-  y += 18;
-  const limiteResumo = Math.max(0, Math.floor((PH - 150 - y) / 15));
-  fotos.slice(0, limiteResumo).forEach((m, i) => {
-    if (i % 2) capa.ret(M, y, PW - 2 * M, 15, '#F4F4F4');
-    const det = [m.posto, ...(m.campos || []).slice(0, 1).map(c => c.v)].filter(Boolean).join(' · ');
-    capa.texto(m.code, cols[0] + 6, y + 10.5, 8, true, '#8A6D12');
-    capa.texto(dataHora(m.ts), cols[1] + 6, y + 10.5, 8, false, '#222222');
-    capa.texto(quebrarPdf(m.modelo.nome, 8, 112)[0], cols[2] + 6, y + 10.5, 8, false, '#222222');
-    capa.texto(quebrarPdf(det, 8, PW - M - cols[3] - 10)[0], cols[3] + 6, y + 10.5, 8, false, '#222222');
-    y += 15;
-  });
-  if (fotos.length > limiteResumo) { y += 4; capa.texto(`… e mais ${fotos.length - limiteResumo} foto(s) nas páginas seguintes.`, M + 6, y + 10, 8.5, false, '#666666'); y += 16; }
-  y = Math.max(y + 16, PH - 112);
-  capa.ret(M, y, PW - 2 * M, 58, '#F7F3E6'); capa.ret(M, y, 4, 58, '#D4AF37');
-  quebrarPdf('Como conferir: cada foto tem um código único (CÓD.) gravado no carimbo. No app Guardião Imagens, abra Galeria > Conferir foto e digite o código para ver os dados originais registrados no momento da captura: hora conferida pela internet, local por GPS e responsável.', 8.5, PW - 2 * M - 24)
-    .forEach((l, i) => capa.texto(l, M + 14, y + 15 + i * 11.5, 8.5, false, '#333333'));
-  rodape(capa, 1, totalPag);
-
-  // páginas de fotos
-  const larg = PW - 2 * M; const topo = 82, base = PH - 44;
-  let pag = 1, feitas = 0;
-  if (layout === 'ad') {
-    for (let i = 0; i < grupos.length; i += 2) {
-      const p = Pagina(); cabecalho(p); pag++;
-      const altBloco = (base - topo) / 2;
-      for (let j = 0; j < 2 && i + j < grupos.length; j++) {
-        const g = grupos[i + j]; const y0 = topo + j * altBloco;
-        p.texto(g.nome || 'Local', M, y0 + 12, 11, true, '#111111');
-        const cw = (larg - 14) / 2;
-        for (const [k, item] of g.itens.entries()) {
-          const [rot, mm, corRot] = item; const x0 = M + k * (cw + 14);
-          const rl = Math.max(58, largTexto(rot, 8.5, true) + 16);
-          p.ret(x0, y0 + 20, rl, 15, corRot); p.texto(rot, x0 + rl / 2, y0 + 31, 8.5, true, '#ffffff', 'centro');
-          if (!mm) { p.borda(x0, y0 + 40, cw, 200, '#cccccc'); p.texto('Sem foto', x0 + cw / 2, y0 + 140, 10, false, '#999999', 'centro'); continue; }
-          if (prog) prog(++feitas);
-          const blob = await DB.arquivo(mm.id); if (!blob) continue;
-          const im = await imagemPdf(blob, 1100, 0.8); const e = encaixar(im, cw, 200);
-          p.ret(x0, y0 + 40, cw, 200, '#111111'); p.img(im, x0 + (cw - e.w) / 2, y0 + 40 + (200 - e.h) / 2, e.w, e.h);
-          escreverLinhas(p, linhasFoto(mm), x0, y0 + 246, cw, y0 + altBloco - 8, 7.5);
-        }
-      }
-      rodape(p, pag, totalPag);
-    }
-  } else {
-    for (let i = 0; i < fotos.length; i += porPag) {
-      const p = Pagina(); cabecalho(p); pag++;
-      for (let j = 0; j < porPag && i + j < fotos.length; j++) {
-        const m = fotos[i + j]; if (prog) prog(++feitas);
-        const blob = await DB.arquivo(m.id); if (!blob) continue;
-        const im = await imagemPdf(blob, layout === '1' ? 1600 : 1200, 0.8);
-        if (layout === '1') {
-          const bh = 470; const e = encaixar(im, larg, bh);
-          p.ret(M, topo, larg, bh, '#111111'); p.img(im, M + (larg - e.w) / 2, topo + (bh - e.h) / 2, e.w, e.h);
-          const L = linhasFoto(m); const meio = Math.ceil(L.length / 2);
-          escreverLinhas(p, L.slice(0, meio), M, topo + bh + 10, larg / 2 - 8, base, 9);
-          escreverLinhas(p, L.slice(meio), M + larg / 2 + 8, topo + bh + 10, larg / 2 - 8, base, 9);
-        } else {
-          const alt = (base - topo) / 2 - 6; const y0 = topo + j * (alt + 12);
-          const iw = 318, ih = alt; const e = encaixar(im, iw, ih);
-          p.ret(M, y0, iw, ih, '#111111'); p.img(im, M + (iw - e.w) / 2, y0 + (ih - e.h) / 2, e.w, e.h);
-          p.ret(M + iw + 12, y0, 2, ih, '#D4AF37');
-          escreverLinhas(p, linhasFoto(m), M + iw + 22, y0, larg - iw - 22, y0 + ih, 8.5);
-        }
-      }
-      rodape(p, pag, totalPag);
-    }
-  }
-
-  // montagem
-  const kids = [];
-  for (const p of paginas) {
-    const s = latin1(p.ops.join('\n')); const c = novo(); objs[c - 1] = { d: `<< /Length ${s.length} >>`, s };
-    const xo = Object.entries(p.imgs).map(([k, n]) => `/${k} ${n} 0 R`).join(' ');
-    const pg = novo(); objs[pg - 1] = { d: `<< /Type /Page /Parent ${PAGS} 0 R /MediaBox [0 0 ${PW} ${PH}] /Resources << /Font << /F1 ${F1} 0 R /F2 ${F2} 0 R >> /XObject << ${xo} >> >> /Contents ${c} 0 R >>` };
-    kids.push(pg);
-  }
-  objs[PAGS - 1] = { d: `<< /Type /Pages /Kids [${kids.map(k => k + ' 0 R').join(' ')}] /Count ${kids.length} >>` };
-  objs[CAT - 1] = { d: `<< /Type /Catalog /Pages ${PAGS} 0 R >>` };
-  const INFO = novo(); objs[INFO - 1] = { d: `<< /Title (${textoPdf('Relatório Fotográfico - ' + info.ident)}) /Author (${textoPdf(info.resp)}) /Producer (${textoPdf('Guardião Imagens ' + VERSAO + ' - ' + AUTOR)}) >>` };
-  const partes = [latin1('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')]; let pos = partes[0].length; const xref = [];
-  objs.forEach((o, i) => {
-    xref[i] = pos;
-    if (o.s) { const a = latin1(`${i + 1} 0 obj\n${o.d}\nstream\n`), b = latin1('\nendstream\nendobj\n'); partes.push(a, o.s, b); pos += a.length + o.s.length + b.length; }
-    else { const a = latin1(`${i + 1} 0 obj\n${o.d}\nendobj\n`); partes.push(a); pos += a.length; }
-  });
-  let x = `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n`;
-  xref.forEach(o => { x += String(o).padStart(10, '0') + ' 00000 n \n'; });
-  x += `trailer\n<< /Size ${objs.length + 1} /Root ${CAT} 0 R /Info ${INFO} 0 R >>\nstartxref\n${pos}\n%%EOF`;
-  partes.push(latin1(x));
-  return new Blob(partes, { type: 'application/pdf' });
-}
-
-/* ---------- Excel (.xlsx) ---------- */
-function gerarXLSX(fotos, info) {
-  const cab = ['Código', 'Data', 'Hora', 'Hora verificada', 'Modelo', 'Detalhes', 'Posto', 'Observação', 'Endereço', 'Latitude', 'Longitude', 'Precisão (m)', 'Responsável', 'Mapa', 'Assinatura digital'];
-  const col = i => { let s = ''; i++; while (i) { const r = (i - 1) % 26; s = String.fromCharCode(65 + r) + s; i = Math.floor((i - 1) / 26); } return s; };
-  const cel = (v, r, c, st) => {
-    const ref = col(c) + r;
-    if (v && typeof v === 'object' && v.link) return `<c r="${ref}" t="str"><f>HYPERLINK("${xml(v.link)}","Abrir mapa")</f><v>Abrir mapa</v></c>`;
-    if (typeof v === 'number') return `<c r="${ref}"${st ? ` s="${st}"` : ''}><v>${v}</v></c>`;
-    return `<c r="${ref}" t="inlineStr"${st ? ` s="${st}"` : ''}><is><t xml:space="preserve">${xml(v)}</t></is></c>`;
-  };
-  const linhas = [`<row r="1">${cab.map((c, i) => cel(c, 1, i, 1)).join('')}</row>`];
-  fotos.forEach((m, k) => {
-    const r = k + 2; const d = new Date(m.ts);
-    const v = [m.code, fData.format(d), fHoraS.format(d), m.verif ? 'Sim' : 'Não', m.modelo.nome, (m.campos || []).map(c => `${c.n}: ${c.v}`).join(' | '), m.posto || '', m.nota || '', m.end || '',
-      m.lat != null ? Number(m.lat.toFixed(6)) : '', m.lon != null ? Number(m.lon.toFixed(6)) : '', m.acc != null ? Math.round(m.acc) : '', m.resp || '', m.lat != null ? { link: linkMapa(m) } : '', m.hash || ''];
-    linhas.push(`<row r="${r}">${v.map((x, i) => cel(x, r, i)).join('')}</row>`);
-  });
-  const larguras = [16, 12, 10, 10, 18, 40, 22, 30, 50, 12, 12, 10, 24, 14, 66];
-  const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${larguras.map((w, i) => `<col min="${i + 1}" max="${i + 1}" width="${w}" customWidth="1"/>`).join('')}</cols><sheetData>${linhas.join('')}</sheetData></worksheet>`;
-  const estilos = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFF1D27A"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B0B0B"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
-  const nomeAba = xml(slug(info.ident).slice(0, 28) || 'Fotos');
-  return zipar([
-    { nome: '[Content_Types].xml', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>' },
-    { nome: '_rels/.rels', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
-    { nome: 'xl/workbook.xml', dados: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="${nomeAba}" sheetId="1" r:id="rId1"/></sheets></workbook>` },
-    { nome: 'xl/_rels/workbook.xml.rels', dados: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>' },
-    { nome: 'xl/worksheets/sheet1.xml', dados: sheet },
-    { nome: 'xl/styles.xml', dados: estilos }
-  ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-}
-
-/* ---------- Google Earth (KML) e CSV ---------- */
-function gerarKML(fotos, info, pasta, nomeFoto) {
-  const pm = fotos.filter(m => m.lat != null).map(m => {
-    const det = [`<b>${xml(m.modelo.nome)}</b>`, `${xml(dataHora(m.ts))} ${m.verif ? '(hora verificada)' : '(hora do aparelho)'}`, ...(m.campos || []).map(c => `${xml(c.n)}: ${xml(c.v)}`),
-      m.posto ? 'Posto: ' + xml(m.posto) : '', m.nota ? 'Obs.: ' + xml(m.nota) : '', m.end ? xml(m.end) : '', 'Responsável: ' + xml(m.resp), 'Código: ' + xml(m.code)].filter(Boolean).join('<br/>');
-    return `<Placemark><name>${xml(m.code)}</name><TimeStamp><when>${new Date(m.ts).toISOString()}</when></TimeStamp><styleUrl>#gi</styleUrl><description><![CDATA[<img src="${pasta}/${nomeFoto(m)}" width="460"/><br/>${det}]]></description><Point><coordinates>${m.lon},${m.lat},0</coordinates></Point></Placemark>`;
-  }).join('');
-  return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${xml(info.ident + ' - ' + info.empresa)}</name><Style id="gi"><IconStyle><color>ff37afd4</color><scale>1.2</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/ylw-circle.png</href></Icon></IconStyle></Style>${pm}</Document></kml>`;
-}
-function gerarCSV(fotos) {
-  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const L = [['Código', 'Data', 'Hora', 'Hora verificada', 'Modelo', 'Detalhes', 'Posto', 'Observação', 'Endereço', 'Latitude', 'Longitude', 'Precisão (m)', 'Responsável', 'Mapa', 'Assinatura digital'].map(q).join(';')];
-  fotos.forEach(m => { const d = new Date(m.ts); L.push([m.code, fData.format(d), fHoraS.format(d), m.verif ? 'Sim' : 'Não', m.modelo.nome, (m.campos || []).map(c => `${c.n}: ${c.v}`).join(' | '), m.posto, m.nota, m.end, m.lat != null ? String(m.lat.toFixed(6)).replace('.', ',') : '', m.lon != null ? String(m.lon.toFixed(6)).replace('.', ',') : '', m.acc != null ? Math.round(m.acc) : '', m.resp, linkMapa(m), m.hash].map(q).join(';')); });
-  return '\uFEFF' + L.join('\r\n');
-}
-
-/* ---------- tela: relatórios ---------- */
-function telaRelatorios(app) {
-  const t = h('div', { class: 'tela' }); app.append(t);
-  const r = estado.rel;
-  if (!r.de) { const d = new Date(Date.now() - 6 * 86400000); r.de = diaChave(d.getTime()); r.ate = diaChave(Date.now()); }
-  if (!r.respRel) r.respRel = cfg.resp;
-  t.append(h('h2', { text: 'Relatórios' }));
-  if (!estado.fotos.length) { t.append(h('div', { class: 'vazio', text: 'Tire algumas fotos para gerar relatórios.' })); return; }
-  const postos = [...new Set(estado.fotos.map(f => f.posto).filter(Boolean))].sort();
-  const resps = [...new Set(estado.fotos.map(f => f.resp).filter(Boolean))].sort();
-  const contador = h('div', { class: 'contador' });
-  const filtrar = () => estado.fotos.filter(f => {
-    if (r.soSel && estado.sel.size) return estado.sel.has(f.id);
-    const d = diaChave(f.ts);
-    if (r.de && d < r.de) return false; if (r.ate && d > r.ate) return false;
-    if (r.posto && f.posto !== r.posto) return false; if (r.modelo && f.modelo.id !== r.modelo) return false;
-    if (r.resp && f.resp !== r.resp) return false; return true;
-  }).sort((a, b) => a.ts - b.ts);
-  const filtrosBox = h('div');
-  const atualizar = () => {
-    const n = filtrar().length;
-    contador.textContent = n ? `${n} foto(s) entram neste relatório` : 'Nenhuma foto com esses filtros';
-    filtrosBox.classList.toggle('oculto', !!(r.soSel && estado.sel.size));
-  };
-  const liga = (el, k, ev) => { el.addEventListener(ev || 'change', () => { r[k] = el.type === 'checkbox' ? el.checked : el.value; atualizar(); }); return el; };
-  const card1 = h('div', { class: 'card' }, h('h3', { text: '1. Quais fotos' }));
-  if (estado.sel.size) card1.append(h('label', { class: 'campo', style: 'display:flex;gap:10px;align-items:center' },
-    liga(h('input', { type: 'checkbox', checked: r.soSel, style: 'width:20px;height:20px' }), 'soSel'), h('span', { style: 'margin:0;color:var(--texto)', text: `Usar só as ${estado.sel.size} fotos selecionadas na galeria` })));
-  filtrosBox.append(
-    h('div', { class: 'grade2' }, campo('De', liga(h('input', { type: 'date', value: r.de }), 'de')), campo('Até', liga(h('input', { type: 'date', value: r.ate }), 'ate'))),
-    campo('Posto', liga(h('select', null, h('option', { value: '', text: 'Todos' }), postos.map(p => h('option', { value: p, text: p, selected: r.posto === p }))), 'posto')),
-    h('div', { class: 'grade2' },
-      campo('Modelo', liga(h('select', null, h('option', { value: '', text: 'Todos' }), modelos().map(m => h('option', { value: m.id, text: m.nome, selected: r.modelo === m.id }))), 'modelo')),
-      campo('Fotógrafo', liga(h('select', null, h('option', { value: '', text: 'Todos' }), resps.map(p => h('option', { value: p, text: p, selected: r.resp === p }))), 'resp'))));
-  card1.append(filtrosBox, contador);
-  const card2 = h('div', { class: 'card' }, h('h3', { text: '2. Dados do relatório' }),
-    campo('Responsável pelo relatório', liga(h('input', { type: 'text', value: r.respRel }), 'respRel', 'input'), true),
-    campo('Identificação da ronda / ocorrência', liga(h('input', { type: 'text', value: r.ident, placeholder: 'Ex.: Ronda noturna 08/11 — Chácara São Mateus' }), 'ident', 'input'), true),
-    campo('Cliente / local', liga(h('input', { type: 'text', value: r.cliente }), 'cliente', 'input')),
-    campo('Observações gerais', liga(h('textarea', { value: r.obs }), 'obs', 'input')));
-  const radios = h('div', { class: 'radio-linha' }, [['2', '2 fotos por página'], ['1', '1 foto grande por página'], ['ad', 'Antes e depois']].map(([v, n]) => h('button', {
-    class: 'chip' + (r.layout === v ? ' ativo' : ''), text: n, onclick: e => { r.layout = v; radios.querySelectorAll('.chip').forEach(c => c.classList.remove('ativo')); e.currentTarget.classList.add('ativo'); }
-  })));
-  const card3 = h('div', { class: 'card' }, h('h3', { text: '3. Gerar' }), h('div', { class: 'suave', style: 'margin-bottom:6px', text: 'Arrumação do PDF:' }), radios,
-    h('div', { class: 'formatos' },
-      h('button', { class: 'formato', onclick: () => gerar('pdf') }, h('b', { text: 'PDF' }), h('span', { text: 'Relatório pronto para entregar ao cliente' })),
-      h('button', { class: 'formato', onclick: () => gerar('xlsx') }, h('b', { text: 'Excel' }), h('span', { text: 'Planilha com todos os dados e link do mapa' })),
-      h('button', { class: 'formato', onclick: () => gerar('zip') }, h('b', { text: 'Pasta ZIP' }), h('span', { text: 'Fotos originais + planilha + mapa' })),
-      h('button', { class: 'formato', onclick: () => gerar('kmz') }, h('b', { text: 'Google Earth' }), h('span', { text: 'Cada foto marcada no mapa' }))));
-  t.append(card1, card2, card3);
-  atualizar();
-
-  async function gerar(tipo) {
-    const fotos = filtrar();
-    if (!fotos.length) return aviso('Sem fotos', 'Nenhuma foto entra nos filtros escolhidos.');
-    if (!r.respRel.trim() || !r.ident.trim()) return aviso('Faltam dados', 'Preencha o responsável pelo relatório e a identificação da ronda/ocorrência.');
-    const info = { empresa: cfg.empresa, resp: r.respRel.trim(), ident: r.ident.trim(), cliente: r.cliente.trim(), obs: r.obs.trim() };
-    const base = `Relatorio_${slug(info.ident)}_${diaChave(Date.now())}`;
-    const c = carregando('Preparando…');
-    try {
-      let blob, nome;
-      if (tipo === 'pdf') { blob = await gerarPDF(fotos, info, r.layout, n => c.texto(`Montando PDF… foto ${n} de ${fotos.length}`)); nome = base + '.pdf'; }
-      else if (tipo === 'xlsx') { blob = gerarXLSX(fotos, info); nome = base + '.xlsx'; }
-      else {
-        const arqs = []; const pasta = tipo === 'kmz' ? 'files' : 'fotos'; const nomeFoto = m => tipo === 'kmz' ? m.code + '.jpg' : nomeArquivo(m);
-        let n = 0;
-        for (const m of fotos) {
-          c.texto(`Juntando fotos… ${++n} de ${fotos.length}`);
-          if (tipo === 'kmz' && m.lat == null) continue;
-          let b = await DB.arquivo(m.id); if (!b) continue;
-          if (tipo === 'kmz') b = (await reduzir(b, 900, 0.75)).blob;
-          arqs.push({ nome: `${pasta}/${nomeFoto(m)}`, dados: new Uint8Array(await b.arrayBuffer()), data: new Date(m.ts) });
-        }
-        if (tipo === 'kmz') {
-          if (!arqs.length) { c.fim(); return aviso('Sem localização', 'Nenhuma das fotos tem coordenadas de GPS.'); }
-          arqs.unshift({ nome: 'doc.kml', dados: gerarKML(fotos, info, pasta, nomeFoto) });
-          blob = zipar(arqs, 'application/vnd.google-earth.kmz'); nome = base + '.kmz';
-        } else {
-          arqs.push({ nome: 'planilha.csv', dados: gerarCSV(fotos) }, { nome: 'mapa_google_earth.kml', dados: gerarKML(fotos, info, pasta, nomeFoto) });
-          blob = zipar(arqs); nome = base + '.zip';
-        }
-      }
-      c.fim();
-      const tipoMime = blob.type || 'application/octet-stream';
-      const tamanho = blob.size > 1048576 ? (blob.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(blob.size / 1024)) + ' KB';
-      const v = await modal('Relatório pronto', h('div', null, h('p', { text: nome }), h('p', { class: 'suave', text: `${fotos.length} foto(s) · ${tamanho}` })),
-        [{ t: 'Compartilhar', v: 's', cls: 'ouro' }, { t: 'Baixar', v: 'b' }, { t: 'Fechar', v: null }]);
-      if (v === 's') { if (!(await compartilharArquivos([new File([blob], nome, { type: tipoMime })], nome))) baixar(blob, nome); }
-      else if (v === 'b') baixar(blob, nome);
-    } catch (e) { c.fim(); aviso('Não foi possível gerar', String(e && e.message || e)); }
-  }
-}
-
 /* ---------- tela: ajustes ---------- */
 function telaAjustes(app) {
   const t = h('div', { class: 'tela' }); app.append(t);
   t.append(h('h2', { text: 'Ajustes' }));
   const emp = h('input', { type: 'text', value: cfg.empresa });
   const resp = h('input', { type: 'text', value: cfg.resp });
-  const prev = h('div', { class: 'logo-prev', style: `background-image:url("${cfg.logo || 'icon-192.png'}")` });
+  const prev = h('div', { class: 'logo-prev', style: `background-image:url("${cfg.logo || 'logo.png'}")` });
   const arqLogo = h('input', { type: 'file', accept: 'image/*', class: 'oculto' });
   arqLogo.addEventListener('change', async () => {
     const f = arqLogo.files[0]; arqLogo.value = ''; if (!f) return;
@@ -1546,7 +998,7 @@ function telaAjustes(app) {
     campo('Seu nome (responsável pelas fotos)', resp, true),
     h('div', { style: 'display:flex;gap:12px;align-items:center;margin-bottom:12px' }, prev, h('div', { class: 'pilha' },
       h('button', { class: 'btn mini ouro', text: 'Trocar logo', onclick: () => arqLogo.click() }),
-      h('button', { class: 'btn mini', text: 'Usar logo padrão', onclick: async () => { cfg.logo = ''; salvarCfg(); await carregarLogo(); prev.style.backgroundImage = 'url("icon-192.png")'; } }))), arqLogo,
+      h('button', { class: 'btn mini', text: 'Usar logo padrão', onclick: async () => { cfg.logo = ''; salvarCfg(); await carregarLogo(); prev.style.backgroundImage = 'url("logo.png")'; } }))), arqLogo,
     h('button', { class: 'btn ouro cheio', text: 'Salvar', onclick: () => {
       if (!resp.value.trim()) return toast('Digite seu nome', true);
       cfg.empresa = emp.value.trim() || 'Guardião'; cfg.resp = resp.value.trim(); salvarCfg(); toast('Salvo');
@@ -1633,8 +1085,7 @@ async function iniciar() {
   GPS.iniciar();
   Relogio.sincronizar();
   setInterval(() => Relogio.sincronizar(), 5 * 60000);
-  setInterval(() => sincronizar(), 60000);
-  window.addEventListener('online', () => { Relogio.sincronizar(); sincronizar(); atualizarStatus(); });
+  window.addEventListener('online', () => { Relogio.sincronizar(); atualizarStatus(); });
   window.addEventListener('offline', atualizarStatus);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { Cam.fechar(); return; }
@@ -1645,7 +1096,6 @@ async function iniciar() {
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   render();
-  sincronizar();
 }
 iniciar();
 </script>
